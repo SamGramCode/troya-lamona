@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troya — El Sazón de La Mona</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#FFFFF5; --white:#FFFFFF; --dark:#1A0F00; --text:#2C1A08;
+  --muted:#8B7050; --or:#D4500A; --orl:#E8641A; --gold:#C89820;
+  --border:rgba(0,0,0,0.08); --shadow:0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg:0 12px 48px rgba(0,0,0,0.14); --radius:18px;
+  --flag-y:#FFD100; --flag-b:#002FA7; --flag-r:#CF0821;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input{font-family:inherit}
+
+/* ── LOADING ─────────────────────────────────────────────────── */
+#loadingOverlay{
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1rem;transition:opacity .5s;
+}
+#loadingOverlay.hidden{opacity:0;pointer-events:none}
+.loading-ring{width:48px;height:48px;border:4px solid var(--border);
+  border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FLAG SPRAY ──────────────────────────────────────────────── */
+.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
+.flag-spray{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.flag-stripe{position:absolute;width:160%;left:-30%;height:30%;
+  transform-origin:center;filter:url(#spray-paint);opacity:.18}
+.flag-stripe.y{background:var(--flag-y);top:10%;transform:rotate(-5deg)}
+.flag-stripe.b{background:var(--flag-b);top:38%;transform:rotate(-5deg)}
+.flag-stripe.r{background:var(--flag-r);top:64%;transform:rotate(-5deg)}
+.flag-stars{position:absolute;width:160%;left:-30%;height:30%;top:38%;
+  transform:rotate(-5deg);transform-origin:center;
+  opacity:.18;pointer-events:none}
+.flag-stars svg{width:100%;height:100%;overflow:visible}
+
+/* ── HERO ────────────────────────────────────────────────────── */
+#heroScreen{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;overflow:hidden;background:var(--bg);padding:2rem 1.5rem 6rem;
+}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.7}
+#heroScreen::after{content:'';position:absolute;bottom:0;left:0;right:0;height:70%;
+  background:linear-gradient(to bottom,transparent 0%,rgba(255,255,245,.6) 50%,var(--bg) 100%);
+  z-index:2;pointer-events:none}
+.hero-logo-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:min(260px,70vw);height:auto;z-index:200;opacity:.7;pointer-events:none}
+.hero-inner{position:relative;z-index:2;max-width:500px;width:100%;
+  display:flex;flex-direction:column;align-items:center;gap:1.1rem}
+.hero-tag{font-size:.7rem;font-weight:800;letter-spacing:4px;color:var(--or);
+  text-transform:uppercase;background:rgba(212,80,10,.08);padding:.3rem 1rem;
+  border-radius:999px;border:1px solid rgba(212,80,10,.2)}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(3rem,13vw,5.5rem);
+  font-weight:900;line-height:1;text-align:center;color:var(--dark);letter-spacing:-1px}
+.hero-title span{color:var(--or)}
+.hero-subtitle{font-family:'Playfair Display',serif;font-style:italic;
+  font-size:clamp(.95rem,3.5vw,1.35rem);color:var(--muted);text-align:center}
+.hero-desc{font-size:.88rem;color:var(--muted);text-align:center;max-width:300px;line-height:1.6}
+.hero-cta{margin-top:.6rem;background:var(--or);color:#fff;font-weight:800;
+  font-size:1rem;padding:.9rem 2.4rem;border-radius:999px;letter-spacing:.5px;
+  transition:transform .25s,box-shadow .25s,background .25s;
+  box-shadow:0 6px 24px rgba(212,80,10,.35)}
+.hero-cta:hover{transform:translateY(-2px) scale(1.03);
+  box-shadow:0 10px 32px rgba(212,80,10,.45);background:var(--orl)}
+.hero-logo{width:min(280px,72vw);height:auto;
+  filter:drop-shadow(0 12px 32px rgba(0,0,0,0.25));
+  animation:logoFloat 4s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.header-logo{height:40px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.15))}
+
+/* ── FOOD CIRCLES ────────────────────────────────────────────── */
+.food-circles{position:absolute;inset:0;pointer-events:none;z-index:1}
+.food-circle{position:absolute;will-change:transform;
+  transition:scale .3s ease,filter .3s ease}
+.food-circle:hover{scale:1.05}
+.food-circle img{width:100%;height:100%;object-fit:contain;display:block;
+  filter:drop-shadow(0 20px 40px rgba(0,0,0,.25))}
+.fc1{width:clamp(130px,42vw,300px);height:clamp(130px,42vw,300px);top:6%;right:2%;animation-duration:5s}
+.fc2{width:clamp(130px,42vw,300px);height:clamp(130px,42vw,300px);top:55%;left:2%;animation-duration:4s;animation-delay:-.5s}
+.fc3{width:clamp(160px,52vw,370px);height:clamp(160px,52vw,370px);bottom:12%;right:6%;animation-duration:6s;animation-delay:-1s}
+.fci{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(3rem,11vw,6rem);background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.2),transparent 60%)}
+@keyframes floating{
+  0%,100%{transform:translateY(0px) rotate(var(--food-rot,0deg))}
+  50%{transform:translateY(-12px) rotate(var(--food-rot,0deg))}
+}
+.food-rotate{will-change:transform;animation:floating 4s ease-in-out infinite}
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;z-index:2;
+  color:var(--muted);font-size:.72rem;letter-spacing:2px;text-transform:uppercase;
+  animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ── APP HEADER ──────────────────────────────────────────────── */
+#appHeader{position:sticky;top:0;z-index:100;
+  background:rgba(255,255,245,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:flex-end;gap:1rem}
+.app-logo{font-family:'Playfair Display',serif;font-weight:900;font-size:1.2rem;
+  color:var(--dark);flex:1}
+.app-logo span{color:var(--or)}
+.total-badge{background:var(--or);color:#fff;font-weight:800;
+  font-size:.82rem;padding:.28rem .85rem;border-radius:999px}
+
+/* ── PLATE AREA ──────────────────────────────────────────────── */
+#appScreen{display:block;min-height:100vh}
+.plate-area{background:var(--white);padding:1.4rem 1.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:.7rem;
+  border-bottom:1px solid var(--border)}
+.plate-lbl-sm{font-size:.7rem;font-weight:800;letter-spacing:3px;
+  color:var(--muted);text-transform:uppercase}
+.plate-wrap{position:relative;width:210px;height:210px}
+.plate-svg{width:100%;height:100%;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.12))}
+.pfi{transition:opacity .5s ease;opacity:0}
+.pfi.on{opacity:1}
+.plate-label{position:absolute;font-size:.52rem;font-weight:800;
+  color:rgba(255,255,255,0.95);text-transform:uppercase;letter-spacing:.5px;
+  text-align:center;line-height:1.2;opacity:0;transition:opacity .4s .3s;
+  text-shadow:0 1px 3px rgba(0,0,0,0.6);pointer-events:none}
+.plate-label.on{opacity:1}
+.pl-prot{top:26%;left:13%}.pl-base{top:26%;right:13%;text-align:right}
+.pl-pri{bottom:26%;left:13%}.pl-sal{bottom:26%;right:13%;text-align:right}
+.pl-ext{top:46%;left:50%;transform:translateX(-50%)}
+.step-dots{display:flex;gap:.4rem;align-items:center}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s}
+.sdot.done{background:var(--or);transform:scale(1.2)}
+.sdot.cur{background:var(--or);transform:scale(1.4);box-shadow:0 0 0 3px rgba(212,80,10,.2)}
+
+/* ── STEP SECTION ────────────────────────────────────────────── */
+.step-sec{padding:1.4rem 1.4rem 7rem;animation:slideUp .35s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.step-h{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;
+  color:var(--dark);margin-bottom:.25rem}
+.step-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.2rem}
+
+/* ── CATEGORY TABS ───────────────────────────────────────────── */
+.cat-tabs{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.5rem;margin-bottom:1rem;
+  scrollbar-width:none;-ms-overflow-style:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;padding:.4rem .9rem;border-radius:999px;font-size:.78rem;
+  font-weight:700;background:var(--border);color:var(--muted);transition:all .25s;
+  border:1.5px solid transparent}
+.cat-tab.active{background:var(--or);color:#fff;border-color:var(--or)}
+.cat-tab:hover:not(.active){background:rgba(212,80,10,.1);color:var(--or)}
+
+/* ── OPTION CARDS ────────────────────────────────────────────── */
+.opts{display:flex;flex-direction:column;gap:.8rem}
+.ocard{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);
+  padding:1rem 1.1rem;display:flex;align-items:center;gap:.9rem;cursor:pointer;
+  transition:transform .3s,box-shadow .3s,border-color .3s,background .3s}
+.ocard:hover{transform:translateY(-2px) scale(1.015);box-shadow:0 8px 28px rgba(0,0,0,0.09)}
+.ocard.sel{border-color:var(--or);background:rgba(212,80,10,.04);
+  box-shadow:0 4px 20px rgba(212,80,10,.15)}
+.oicon{width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+.oname{font-weight:800;font-size:.95rem;color:var(--dark)}
+.odesc{font-size:.75rem;color:var(--muted);margin-top:.1rem}
+.oprice{font-size:.8rem;font-weight:800;color:var(--or);margin-top:.15rem}
+.ocheck{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);
+  transition:all .3s;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-left:auto}
+.ocard.sel .ocheck{background:var(--or);border-color:var(--or);color:#fff}
+.ocard.sel .ocheck::after{content:'✓';font-size:.72rem;font-weight:900}
+
+/* ── TOGGLE ──────────────────────────────────────────────────── */
+.tcard{background:var(--white);border:2px solid var(--border);border-radius:var(--radius);
+  padding:1.1rem;display:flex;align-items:center;gap:.9rem;cursor:pointer;transition:all .3s}
+.tcard.on{border-color:var(--or);background:rgba(212,80,10,.04)}
+.tswitch{width:46px;height:25px;border-radius:999px;background:var(--border);
+  position:relative;transition:background .3s;flex-shrink:0}
+.tcard.on .tswitch{background:var(--or)}
+.tthumb{position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;
+  top:3px;left:3px;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+.tcard.on .tthumb{transform:translateX(21px)}
+
+/* ── ENTREGA / PAGO ──────────────────────────────────────────── */
+.inp-lbl{font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.35rem;display:block}
+.inp{width:100%;padding:.82rem 1rem;border:2px solid var(--border);border-radius:12px;
+  font-size:.93rem;color:var(--dark);background:var(--white);transition:border-color .3s}
+.inp:focus{outline:none;border-color:var(--or)}
+.inp-grp{margin-bottom:.9rem}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.pcard{border:2px solid var(--border);border-radius:var(--radius);padding:.9rem;
+  text-align:center;cursor:pointer;transition:all .3s;background:var(--white);font-weight:700;font-size:.9rem}
+.pcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.pcard.sel{border-color:var(--or);background:rgba(212,80,10,.04);color:var(--or)}
+.picon{font-size:1.7rem;display:block;margin-bottom:.25rem}
+
+/* ── SUMMARY ─────────────────────────────────────────────────── */
+.sumcard{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);
+  padding:1.1rem;margin-bottom:1rem}
+.sumrow{display:flex;justify-content:space-between;padding:.45rem 0;
+  border-bottom:1px solid var(--border);font-size:.88rem}
+.sumrow:last-child{border-bottom:none}
+.sumrow.total{font-weight:900;font-size:1.05rem;color:var(--or);
+  border-top:2px solid var(--or);border-bottom:none;margin-top:.4rem;padding-top:.9rem}
+
+/* ── BOTTOM NAV ──────────────────────────────────────────────── */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(255,253,248,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);padding:.9rem 1.4rem;display:flex;gap:.75rem}
+.btn-back{background:rgba(0,0,0,.06);color:var(--muted);border-radius:12px;
+  padding:.82rem 1.1rem;font-weight:700;font-size:.88rem;transition:all .25s;flex-shrink:0}
+.btn-back:hover{background:rgba(0,0,0,.1)}
+.btn-next{flex:1;background:var(--or);color:#fff;border-radius:12px;padding:.82rem;
+  font-weight:800;font-size:.97rem;letter-spacing:.3px;transition:all .25s;
+  box-shadow:0 4px 16px rgba(212,80,10,.3)}
+.btn-next:hover{background:var(--orl);transform:translateY(-1px);
+  box-shadow:0 8px 24px rgba(212,80,10,.4)}
+.btn-next:disabled{background:#ccc;box-shadow:none;cursor:not-allowed;transform:none}
+
+/* ── PAY INFO + UPLOAD ───────────────────────────────────────── */
+.pay-info{background:rgba(212,80,10,.06);border:1.5px solid rgba(212,80,10,.2);
+  border-radius:var(--radius);padding:1rem 1.1rem;margin-top:1rem;display:none}
+.pay-info.show{display:block}
+.pay-info-title{font-weight:900;font-size:.92rem;color:var(--or);margin-bottom:.25rem}
+.pay-info-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;
+  color:var(--dark);letter-spacing:1px;margin-bottom:.3rem}
+.pay-info-note{font-size:.76rem;color:var(--muted);line-height:1.55}
+.upload-section{margin:1rem 0;padding:1.1rem 1rem;
+  background:rgba(212,80,10,.07);border:1.5px dashed var(--or);
+  border-radius:14px;text-align:center}
+.upload-title{font-weight:900;font-size:.88rem;margin-bottom:.25rem;color:var(--or)}
+.upload-sub{font-size:.75rem;color:var(--muted);margin-bottom:.8rem;line-height:1.5}
+.upload-btn-lbl{background:var(--or);color:#fff;padding:.65rem 1.4rem;border-radius:10px;
+  font-weight:800;font-size:.82rem;cursor:pointer;display:inline-block;transition:background .2s}
+.upload-btn-lbl:hover{background:var(--orl)}
+.upload-preview{max-width:100%;max-height:180px;object-fit:contain;border-radius:10px;
+  margin-top:.8rem;display:none;border:1px solid var(--border)}
+.upload-ok{color:#27AE60;font-weight:800;font-size:.82rem;margin-top:.55rem;display:none}
+.btn-confirm{display:block;width:100%;background:var(--or);color:#fff;border:none;
+  border-radius:12px;padding:.9rem;font-weight:800;font-size:1rem;cursor:pointer;
+  margin-top:1.4rem;box-shadow:0 4px 16px rgba(212,80,10,.3);transition:all .25s;letter-spacing:.3px}
+.btn-confirm:disabled{background:#ccc;box-shadow:none;cursor:not-allowed}
+.btn-confirm:not(:disabled):hover{background:var(--orl);transform:translateY(-1px);
+  box-shadow:0 8px 24px rgba(212,80,10,.4)}
+
+/* ── CONFIRM ─────────────────────────────────────────────────── */
+#confirmScreen{display:none;min-height:100vh;align-items:center;justify-content:center;
+  flex-direction:column;padding:2rem;text-align:center;background:var(--bg)}
+.conf-circle{width:96px;height:96px;border-radius:50%;background:var(--or);
+  display:flex;align-items:center;justify-content:center;font-size:2.6rem;
+  margin-bottom:1.4rem;box-shadow:0 12px 40px rgba(212,80,10,.4);
+  animation:popIn .5s cubic-bezier(.17,.67,.24,1.4)}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.conf-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900;
+  color:var(--dark);margin-bottom:.4rem}
+.conf-sub{color:var(--muted);font-size:.92rem;margin-bottom:1.8rem}
+.conf-detail{background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.1rem;width:100%;max-width:360px;
+  text-align:left;margin-bottom:1.4rem}
+.conf-item{display:flex;justify-content:space-between;padding:.38rem 0;
+  border-bottom:1px solid var(--border);font-size:.83rem}
+.conf-item:last-child{border-bottom:none}
+.btn-nuevo{background:var(--or);color:#fff;border-radius:999px;padding:.85rem 2.2rem;
+  font-weight:800;font-size:.97rem;box-shadow:0 6px 24px rgba(212,80,10,.35);transition:all .25s}
+.btn-nuevo:hover{background:var(--orl);transform:translateY(-2px)}
+
+/* ── FADE IN UP ──────────────────────────────────────────────── */
+.fiu{opacity:0;transform:translateY(50px);
+  transition:opacity .65s ease,transform .65s ease}
+.fiu.vis{opacity:1;transform:translateY(0)}
+
+/* ── CANTIDAD — contador +/− ─────────────────────────────────── */
+.qty-row{display:flex;align-items:center;justify-content:center;gap:1.2rem;margin:1.2rem 0}
+.qty-btn{width:52px;height:52px;border-radius:50%;border:2px solid var(--or);
+  background:transparent;color:var(--or);font-size:1.8rem;font-weight:900;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .22s;line-height:1}
+.qty-btn:hover{background:var(--or);color:#fff;transform:scale(1.08)}
+.qty-num{font-family:'Playfair Display',serif;font-size:3.5rem;font-weight:900;
+  color:var(--dark);min-width:3rem;text-align:center;line-height:1}
+.qty-lbl{text-align:center;font-size:.72rem;font-weight:800;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted)}
+
+/* ── ALMUERZO RAIL — horizontal ──────────────────────────────── */
+.alm-rail{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  gap:1rem;padding:.5rem 1rem 1rem;scrollbar-width:none;-ms-overflow-style:none}
+.alm-rail::-webkit-scrollbar{display:none}
+.alm-card{flex:0 0 min(290px,82vw);scroll-snap-align:start;background:var(--white);
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow-y:auto;overflow-x:hidden;max-height:calc(100vh - 190px);
+  box-shadow:var(--shadow);display:flex;flex-direction:column;
+  scrollbar-width:none;-ms-overflow-style:none}
+.alm-card::-webkit-scrollbar{display:none}
+.alm-top{position:sticky;top:0;z-index:4;
+  padding:.8rem .8rem .65rem;display:flex;flex-direction:column;
+  align-items:center;gap:.4rem;
+  background:rgba(248,245,238,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border)}
+.alm-num-badge{font-size:.62rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;color:var(--or);background:rgba(212,80,10,.1);
+  padding:.2rem .7rem;border-radius:999px}
+.alm-plate-wrap{width:120px;height:120px;will-change:transform;cursor:pointer;
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,0.12))}
+.alm-plate-wrap .plate-svg{width:100%;height:100%}
+.alm-prot-name{font-size:.75rem;font-weight:700;color:var(--muted);
+  text-align:center;min-height:1rem}
+.alm-section{padding:.65rem .8rem;border-top:1px solid var(--border)}
+.alm-section-lbl{font-size:.58rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;color:var(--or);margin-bottom:.45rem}
+.alm-section .cat-tabs{gap:.3rem;margin-bottom:.5rem}
+.alm-section .cat-tab{font-size:.65rem;padding:.25rem .55rem}
+.alm-section .opts{gap:.45rem}
+.alm-section .ocard{padding:.6rem .65rem;gap:.55rem}
+.alm-section .tcard{padding:.65rem .7rem;gap:.6rem}
+.alm-section .oicon,.alm-section .tcard .oicon{width:36px;height:36px;font-size:1.05rem}
+.alm-section .oname{font-size:.8rem}
+.alm-section .oprice{font-size:.7rem}
+.alm-section .ocheck{width:17px;height:17px}
+@keyframes plate-spin-once{
+  0%  {transform:rotate(var(--food-rot,0deg)) scale(1)}
+  50% {transform:rotate(calc(var(--food-rot,0deg) + 200deg)) scale(.88)}
+  100%{transform:rotate(calc(var(--food-rot,0deg) + 360deg)) scale(1)}
+}
+.plate-spin-once{animation:plate-spin-once .65s cubic-bezier(.22,.61,.36,1)!important}
+
+/* ── PASOS MULTI-BLOCK ───────────────────────────────────────── */
+.multi-blocks{display:flex;flex-direction:column;gap:.9rem;padding:0 0 5rem}
+.multi-block{background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.9rem 1rem;
+  opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease}
+.multi-block.vis{opacity:1;transform:translateY(0)}
+.multi-lbl{font-size:.62rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;color:var(--or);margin-bottom:.6rem}
+.no-aplica{display:inline-flex;align-items:center;gap:.4rem;
+  padding:.35rem .9rem;border-radius:999px;background:rgba(0,0,0,.05);
+  color:var(--muted);font-size:.75rem;font-weight:700}
+
+/* ── STEP DOTS AREA ──────────────────────────────────────────── */
+.sdots-area{padding:.6rem 1.5rem .2rem;display:flex;justify-content:center}
+
+/* ── ACOMPAÑAMIENTOS ─────────────────────────────────────────── */
+.accomp-section{padding:.6rem .8rem;border-top:1px solid var(--border)}
+.accomp-lbl{font-size:.58rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--or);margin-bottom:.55rem}
+.accomp-grid{display:flex;flex-wrap:wrap;gap:.65rem}
+.accomp-item{display:flex;flex-direction:column;align-items:center;gap:.22rem;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.accomp-item.included{cursor:default;opacity:.75}
+.accomp-img{width:62px;height:62px;border-radius:50%;overflow:hidden;
+  border:2.5px solid var(--border);transition:border-color .22s,box-shadow .22s;flex-shrink:0}
+.accomp-img img{width:100%;height:100%;object-fit:cover;display:block}
+.accomp-item.sel .accomp-img,.accomp-item.on .accomp-img,.accomp-item.included .accomp-img{
+  border-color:var(--or);box-shadow:0 0 0 3px rgba(212,80,10,.18)}
+.accomp-name{font-size:.57rem;font-weight:800;text-align:center;color:var(--muted);
+  max-width:66px;line-height:1.2;transition:color .22s}
+.accomp-item.sel .accomp-name,.accomp-item.on .accomp-name,.accomp-item.included .accomp-name{color:var(--or)}
+
+/* ── BUILD PHASE ─────────────────────────────────────────────── */
+.build-screen{display:flex;flex-direction:column;padding:0 0 7rem}
+.build-label-area{text-align:center;padding:.7rem 1rem .2rem}
+.build-step-pill{display:inline-block;font-size:.62rem;font-weight:900;
+  letter-spacing:3px;text-transform:uppercase;color:var(--or);
+  background:rgba(212,80,10,.1);padding:.25rem .8rem;border-radius:999px;margin-bottom:.35rem}
+.build-phase-lbl{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--dark)}
+.build-plate-area{display:flex;flex-direction:column;align-items:center;padding:.5rem 1rem .7rem}
+.build-plate-big{width:min(190px,50vw);height:min(190px,50vw)}
+.build-plate-big .plate-svg{width:100%;height:100%}
+.build-prot-lbl{margin-top:.45rem;font-size:.85rem;font-weight:700;
+  color:var(--gold);min-height:1.3em;text-align:center}
+.build-opts-area{padding:0 1rem}
+
+/* ── MINI PLATES ROW ─────────────────────────────────────────── */
+.plates-row{display:flex;justify-content:center;flex-wrap:wrap;gap:.7rem;
+  padding:.7rem 1rem;border-bottom:1px solid var(--border);margin-bottom:.2rem}
+.mini-pw-wrap{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.mini-pw{width:66px;height:66px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.1))}
+.mini-pw .plate-svg{width:100%;height:100%}
+.mini-pl{font-size:.57rem;font-weight:800;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted)}
+
+/* ── SPIN OUT ────────────────────────────────────────────────── */
+@keyframes spin-out{
+  0%  {transform:translateY(0) rotate(var(--food-rot,0deg)) scale(1);opacity:1}
+  50% {transform:translateY(-14px) rotate(calc(var(--food-rot,0deg) + 200deg)) scale(.76);opacity:.25}
+  100%{transform:translateY(0) rotate(calc(var(--food-rot,0deg) + 360deg)) scale(.58);opacity:0}
+}
+.plate-spinning{animation:spin-out .62s cubic-bezier(.22,.61,.36,1) forwards!important}
+
+/* ── LISTO BUTTON ────────────────────────────────────────────── */
+.btn-listo{display:block;width:100%;max-width:400px;margin:1.5rem auto 0;
+  background:linear-gradient(135deg,var(--or),var(--orl));color:#fff;
+  border:none;border-radius:var(--radius);padding:.95rem 1.5rem;
+  font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:.3px;
+  box-shadow:0 4px 16px rgba(212,80,10,.3);transition:all .25s}
+.btn-listo:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,80,10,.4)}
+
+/* Sombra más ligera en móvil */
+@media(max-width:767px){
+  .food-circle{box-shadow:0 12px 25px rgba(0,0,0,.15)}
+  .food-circle:hover{scale:1.05;box-shadow:0 20px 40px rgba(0,0,0,.22)}
+}
+@media(prefers-reduced-motion:reduce){.food-circle,.fiu,.ocard{animation:none;transition:none}}
+
+/* ── MENU SHOWCASE ─────────────────────────────────────────── */
+.showcase{padding:2.5rem 1.2rem 7rem}
+.showcase-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;
+  color:var(--dark);text-align:center;margin-bottom:.3rem}
+.showcase-sub{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:2.5rem}
+.showcase-grid{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(230px,80vw),1fr));
+  gap:2.5rem 1.5rem;justify-items:center}
+.dish-card{display:flex;flex-direction:column;align-items:center;width:100%;max-width:280px}
+.dish-img-wrap{width:clamp(180px,55vw,260px);height:clamp(180px,55vw,260px);
+  border-radius:50%;overflow:hidden;margin-bottom:1.1rem;
+  box-shadow:0 14px 36px rgba(0,0,0,.14);will-change:transform;flex-shrink:0}
+.dish-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.dish-title{font-weight:900;font-size:.95rem;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--dark);text-align:center;padding-bottom:.45rem;
+  border-bottom:2px solid var(--dark);width:100%;margin-bottom:.55rem}
+.dish-desc{font-size:.77rem;color:var(--muted);text-align:center;line-height:1.55;
+  margin-bottom:.75rem;max-width:210px}
+.dish-price{font-size:.92rem;font-weight:800;color:var(--or);margin-bottom:.85rem}
+.dish-qty{display:flex;align-items:center;gap:1rem}
+.dq-btn{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--or);
+  background:transparent;color:var(--or);font-size:1.4rem;font-weight:900;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .2s;line-height:1}
+.dq-btn:hover{background:var(--or);color:#fff;transform:scale(1.08)}
+.dq-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;
+  color:var(--dark);min-width:1.8rem;text-align:center}
+.showcase-cta{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);
+  width:calc(100% - 2.4rem);max-width:400px;z-index:80;
+  background:var(--or);color:#fff;border:none;border-radius:999px;
+  padding:1rem 2rem;font-size:1.05rem;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 28px rgba(212,80,10,.45);transition:all .25s;letter-spacing:.3px}
+.showcase-cta:hover:not(:disabled){background:var(--orl);
+  box-shadow:0 12px 36px rgba(212,80,10,.55)}
+.showcase-cta:disabled{background:#ccc;box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:not-allowed}
+.sc-cat-lbl{font-size:.65rem;font-weight:900;letter-spacing:4px;text-transform:uppercase;
+  color:var(--or);padding:1.8rem 0 .6rem;border-bottom:2px solid rgba(212,80,10,.12);
+  margin-bottom:1rem}
+
+/* ── MASCOT ────────────────────────────────────────────────── */
+.mascot-wrap{position:fixed;z-index:200;pointer-events:none;opacity:0;
+  transform:translate(-50%,-50%);width:72px}
+.mascot-wrap svg{overflow:visible;width:100%;height:auto}
+@keyframes arm-wave-l{
+  0%,100%{transform:rotate(0deg)}
+  45%{transform:rotate(-50deg)}
+}
+@keyframes arm-wave-r{
+  0%,100%{transform:rotate(0deg)}
+  45%{transform:rotate(50deg)}
+}
+@keyframes eye-blink{
+  0%,88%,100%{transform:scaleY(1)}
+  93%{transform:scaleY(0.05)}
+}
+@keyframes mascot-hop{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+.mascot-wrap.active svg{animation:mascot-hop 1.3s ease-in-out infinite}
+.mascot-wrap .arm-l{transform-origin:22px 48px;animation:arm-wave-l 1.4s ease-in-out infinite}
+.mascot-wrap .arm-r{transform-origin:58px 48px;animation:arm-wave-r 1.4s ease-in-out infinite .25s}
+.mascot-wrap .eye-l{transform-origin:34px 43px;animation:eye-blink 3.2s ease-in-out infinite}
+.mascot-wrap .eye-r{transform-origin:46px 43px;animation:eye-blink 3.2s ease-in-out infinite .6s}
+</style>
+</head>
+<body>
+
+<!-- SVG filters -->
+<svg class="svg-defs">
+  <defs>
+    <filter id="spray-paint" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04 0.08" numOctaves="4" seed="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation="2"/>
+    </filter>
+    <filter id="spray-stars" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.06 0.1" numOctaves="3" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="loading-ring"></div>
+  <span style="font-size:.75rem;color:var(--muted);letter-spacing:2px">CARGANDO MENÚ...</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════ -->
+<div id="heroScreen">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="video portada.mp4" type="video/mp4">
+  </video>
+  <img src="nuevo_logo_sin_fondo-removebg-preview.png" alt="Troya El Sazón de La Mona" class="hero-logo-center">
+  <div class="flag-spray">
+    <div class="flag-stripe y"></div>
+    <div class="flag-stripe b"></div>
+    <div class="flag-stripe r"></div>
+    <div class="flag-stars">
+      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <polygon transform="translate(23.8,19.6)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(30.8,12.4)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(39.9,7.6)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(50,6)"      fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(60.1,7.6)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(69.2,12.4)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+        <polygon transform="translate(76.2,19.6)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- MASCOT — personaje animado esquina -->
+<div class="mascot-wrap" id="mascotWrap">
+  <svg viewBox="0 0 80 108" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sombrero llanero -->
+    <ellipse cx="40" cy="24" rx="31" ry="7" fill="#7A5810"/>
+    <rect x="27" y="10" width="26" height="17" rx="13" fill="#9A6E18"/>
+    <ellipse cx="40" cy="10" rx="13" ry="4.5" fill="#C89820"/>
+    <rect x="27" y="24" width="26" height="3.5" fill="#5A3E08"/>
+    <path d="M20 27 Q40 34 60 27" stroke="#5A3E08" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- Cabeza/cuerpo circular estilo medallón -->
+    <circle cx="40" cy="46" r="19" fill="#8B1A1A" stroke="#C89820" stroke-width="2.5"/>
+    <circle cx="40" cy="46" r="15" fill="#6B1010" stroke="#D4A820" stroke-width="1"/>
+    <!-- Ojo izquierdo -->
+    <ellipse class="eye-l" cx="34" cy="43" rx="3.2" ry="3.5" fill="white"/>
+    <circle cx="35" cy="44" r="1.8" fill="#1A0800"/>
+    <circle cx="35.6" cy="43.2" r="0.6" fill="white"/>
+    <!-- Ojo derecho -->
+    <ellipse class="eye-r" cx="46" cy="43" rx="3.2" ry="3.5" fill="white"/>
+    <circle cx="47" cy="44" r="1.8" fill="#1A0800"/>
+    <circle cx="47.6" cy="43.2" r="0.6" fill="white"/>
+    <!-- Sonrisa -->
+    <path d="M33 51 Q40 58 47 51" stroke="#C89820" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- Brazo izquierdo -->
+    <g class="arm-l">
+      <line x1="22" y1="48" x2="9" y2="40" stroke="#8B1A1A" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="9" cy="40" r="4.5" fill="#C07840"/>
+    </g>
+    <!-- Brazo derecho -->
+    <g class="arm-r">
+      <line x1="58" y1="48" x2="71" y2="40" stroke="#8B1A1A" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="71" cy="40" r="4.5" fill="#C07840"/>
+    </g>
+    <!-- Torso -->
+    <rect x="32" y="65" width="16" height="17" rx="5" fill="#D4500A"/>
+    <rect x="37" y="72" width="6" height="5" rx="2" fill="#C89820"/>
+    <!-- Pierna izquierda -->
+    <line x1="36" y1="82" x2="31" y2="96" stroke="#8B1A1A" stroke-width="5" stroke-linecap="round"/>
+    <!-- Alpargata izquierda -->
+    <ellipse cx="29" cy="99" rx="10" ry="4" fill="#C89820"/>
+    <line x1="22" y1="97" x2="36" y2="97" stroke="#9A7818" stroke-width="1.8"/>
+    <line x1="26" y1="96" x2="26" y2="100" stroke="#7A5810" stroke-width="1.5"/>
+    <line x1="30" y1="95" x2="30" y2="99" stroke="#7A5810" stroke-width="1.5"/>
+    <!-- Pierna derecha -->
+    <line x1="44" y1="82" x2="49" y2="96" stroke="#8B1A1A" stroke-width="5" stroke-linecap="round"/>
+    <!-- Alpargata derecha -->
+    <ellipse cx="51" cy="99" rx="10" ry="4" fill="#C89820"/>
+    <line x1="44" y1="97" x2="58" y2="97" stroke="#9A7818" stroke-width="1.8"/>
+    <line x1="48" y1="96" x2="48" y2="100" stroke="#7A5810" stroke-width="1.5"/>
+    <line x1="52" y1="95" x2="52" y2="99" stroke="#7A5810" stroke-width="1.5"/>
+  </svg>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MENU SHOWCASE
+══════════════════════════════════════════════════════ -->
+<section id="menuShowcase" style="background:var(--bg)">
+  <div class="showcase">
+    <h2 class="showcase-title">Nuestros Platos</h2>
+    <p class="showcase-sub">Selecciona cuántos quieres de cada uno</p>
+    <div id="showcaseGrid"></div>
+    <button class="showcase-cta" id="showcaseCta" disabled onclick="armarDesdeShowcase()">
+      Selecciona al menos uno
+    </button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     APP
+══════════════════════════════════════════════════════ -->
+<div id="appScreen">
+  <div id="appHeader">
+      <div class="total-badge" id="totalBadge">$0</div>
+  </div>
+  <div id="stepContent"></div>
+  <div class="bnav" id="bnavBar">
+    <button type="button" class="btn-back" id="btnBack" onclick="goBack()">← Atrás</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CONFIRMACIÓN
+══════════════════════════════════════════════════════ -->
+<div id="confirmScreen">
+  <div class="conf-circle">✓</div>
+  <h2 class="conf-title">¡Pedido recibido!</h2>
+  <p class="conf-sub" id="confSub"></p>
+  <div class="conf-detail" id="confDetail"></div>
+  <button type="button" class="btn-nuevo" onclick="resetPedido()">Hacer otro pedido</button>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   SUPABASE
+══════════════════════════════════════════════════════════════ */
+const SUPA_URL = 'https://zdffezoyltxxdjjruxrj.supabase.co';
+const SUPA_KEY = 'sb_publishable_sFANrZ5bRpslGqqwBOhdOA_xD5t6aVt';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+const fmt = n => '$' + Number(n).toLocaleString('es-CO');
+
+/* ══════════════════════════════════════════════════════════════
+   PRECIOS (ajusta según tus precios reales)
+══════════════════════════════════════════════════════════════ */
+const PAYMENT_INFO = {
+  nequi:    {title:'Nequi',        num:'311 758 0802',  note:'Envía el pago a este número y sube el comprobante.'},
+  daviplata:{title:'Daviplata',    num:'322 369 0069',  note:'Transfiere a este número y sube el comprobante.'},
+  llave:    {title:'Llave B-reve', num:'@Loreangel133', note:'Paga con tu Llave y sube el comprobante.'},
+  efectivo: {title:'Efectivo',     num:'💵',            note:'Pagas en efectivo al recibir tu pedido.'},
+};
+
+const P = {
+  corriente: 14000,   // Carnes, Pollo, Cerdo, Alitas normales
+  especial:  20000,   // Especiales
+  pasta:     14000,
+  mojarra:   22000,
+  arroz_esp: 14000,   // Arroz mixto / chino
+  sopa_sola: 8000,
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MENÚ COMPLETO
+══════════════════════════════════════════════════════════════ */
+const CATEGORIAS = [
+  { id:'carnes',    label:'🥩 Carnes',    color:'#8B2020' },
+  { id:'alitas',    label:'🍗 Alitas',    color:'#C07820' },
+  { id:'pollo',     label:'🐔 Pollo',     color:'#C89020' },
+  { id:'cerdo',     label:'🐷 Cerdo',     color:'#A04820' },
+  { id:'especiales',label:'⭐ Especiales',color:'#6B3A8C' },
+  { id:'arroces',   label:'🍚 Arroces',   color:'#4A8A2A' },
+  { id:'pescado',   label:'🐟 Mojarra',   color:'#1A6B8A' },
+  { id:'pastas',    label:'🍝 Pastas',    color:'#C04A30' },
+  { id:'sopa_cat',  label:'🍲 Sopa',      color:'#8B4820' },
+];
+
+const PROTEINAS = [
+  // CARNES
+  {id:'carne_guisada',    cat:'carnes',    name:'Carne Guisada',        precio:P.corriente, img:'carne guisada.png'},
+  {id:'bistec_salsa',     cat:'carnes',    name:'Bistec en Salsa',      precio:P.corriente, img:'bisteck en salsa.png'},
+  {id:'carne_asada',      cat:'carnes',    name:'Carne Asada',          precio:P.corriente, img:'carne asada.png'},
+  {id:'carne_salteada',   cat:'carnes',    name:'Carne Salteada',       precio:P.corriente, img:'carne salteada.png'},
+  {id:'carne_encebollada',cat:'carnes',    name:'Carne Encebollada',    precio:P.corriente, img:'carne encebollada.png'},
+  {id:'carne_bbq',        cat:'carnes',    name:'Carne BBQ',            precio:P.corriente, img:'carne bbq.png'},
+  // ALITAS
+  {id:'alitas_sudadas',   cat:'alitas',    name:'Alitas Sudadas',       precio:P.corriente, img:'alitas sudadas.png'},
+  {id:'alitas_fritas',    cat:'alitas',    name:'Alitas Fritas',        precio:P.corriente, img:'alitas fritas.png'},
+  // POLLO
+  {id:'pollo_horno',      cat:'pollo',     name:'Pollo al Horno',       precio:P.corriente, img:'pollo al horno.png'},
+  {id:'pollo_frito',      cat:'pollo',     name:'Pollo Frito',          precio:P.corriente, img:'pollo frito.png'},
+  {id:'pollo_sudado',     cat:'pollo',     name:'Pollo Sudado',         precio:P.corriente, img:'pollo sudado.png'},
+  {id:'pechuga_asada',    cat:'pollo',     name:'Pechuga Asada',        precio:P.corriente, img:'pechuga asada.png'},
+  {id:'pechuga_salteada', cat:'pollo',     name:'Pechuga Salteada',     precio:P.corriente, img:'pechuga salteada.png'},
+  {id:'pechuga_bbq',      cat:'pollo',     name:'Pechuga BBQ',          precio:P.corriente, img:'pechuga bbq.png'},
+  // CERDO
+  {id:'lomo_asado',       cat:'cerdo',     name:'Lomo Asado',           precio:P.corriente, img:'lomo de cerdo asado.png'},
+  {id:'lomo_salteado',    cat:'cerdo',     name:'Lomo Salteado',        precio:P.corriente, img:'lomo de cerdo salteado.png'},
+  {id:'lomo_bbq',         cat:'cerdo',     name:'Lomo BBQ',             precio:P.corriente, img:'lomo de cerdo bbq.png'},
+  {id:'lomo_encebollado', cat:'cerdo',     name:'Lomo Encebollado',     precio:P.corriente, img:'lomo de cerdo encebollado.png'},
+  // ESPECIALES
+  {id:'chuleta',          cat:'especiales',name:'Chuleta de Cerdo',     precio:P.especial,  img:'chuleta de cerdo.png'},
+  {id:'alitas_bbq',       cat:'especiales',name:'Alitas BBQ',           precio:P.especial,  img:'alitas bbq.png'},
+  {id:'costillas_bbq',    cat:'especiales',name:'Costillas BBQ',        precio:P.especial,  img:'costillas bbq.png'},
+  {id:'costillas_fritas', cat:'especiales',name:'Costillas Fritas',     precio:P.especial,  img:'costillas fritas.png'},
+  {id:'pechuga_apanada',  cat:'especiales',name:'Pechuga Apanada',      precio:P.especial,  img:'pechuga apanada.png'},
+  {id:'pechuga_gratinada',cat:'especiales',name:'Pechuga Gratinada',    precio:P.especial,  img:'pechuga gratinada.png'},
+  {id:'lomo_apanado',     cat:'especiales',name:'Lomo Apanado',         precio:P.especial,  img:'lomo apanado.png'},
+  {id:'gordon_bleu',      cat:'especiales',name:'Gordon Bleu',          precio:P.especial,  img:'gordon blue.png'},
+  // ARROCES
+  {id:'arroz_mixto',      cat:'arroces',   name:'Arroz Mixto',          precio:P.arroz_esp, img:'arroz mixto.png'},
+  {id:'arroz_chino',      cat:'arroces',   name:'Arroz Chino',          precio:P.arroz_esp, img:'arroz chino.png'},
+  // MOJARRA
+  {id:'mojarra',          cat:'pescado',   name:'Mojarra',              precio:P.mojarra,   img:'mojarra frita.png'},
+  // PASTAS
+  {id:'pasta_salteada',   cat:'pastas',    name:'Pasta Salteada',       precio:P.pasta,     img:'pasta salteada.png'},
+  {id:'pasta_bolona',     cat:'pastas',    name:'Pasta Boloña',         precio:P.pasta,     img:'pasta boloña.png'},
+  // SOPA (última)
+  {id:'sopa_sola',        cat:'sopa_cat',  name:'Sopa Sola',            precio:P.sopa_sola, img:'sopa sola.png'},
+];
+
+const CAT_ICONS = {
+  carnes:'🥩',alitas:'🍗',pollo:'🐔',cerdo:'🐷',especiales:'⭐',pastas:'🍝',
+  pescado:'🐟',arroces:'🍚',sopa_cat:'🍲'
+};
+
+const CAT_COLORS = {
+  carnes:   'radial-gradient(circle at 40% 35%,#C84040,#8B2020)',
+  alitas:   'radial-gradient(circle at 40% 35%,#E09840,#C07820)',
+  pollo:    'radial-gradient(circle at 40% 35%,#E8B840,#C89020)',
+  cerdo:    'radial-gradient(circle at 40% 35%,#D07040,#A04820)',
+  especiales:'radial-gradient(circle at 40% 35%,#9060C0,#6B3A8C)',
+  pastas:   'radial-gradient(circle at 40% 35%,#E07050,#C04A30)',
+  pescado:  'radial-gradient(circle at 40% 35%,#3490C0,#1A6B8A)',
+  arroces:  'radial-gradient(circle at 40% 35%,#6AB040,#4A8A2A)',
+  sopa_cat: 'radial-gradient(circle at 40% 35%,#C87840,#8B4820)',
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADO
+   Steps: 0=cantidad 1=proteínas 2=principio 3=ensalada 4=incluidos 5=entrega 6=pago
+══════════════════════════════════════════════════════════════ */
+const SIN_CONTORNO   = ['pastas','arroces','sopa_cat'];
+const SOLO_PAPAS_JUGO = ['pastas','arroces'];
+const SIN_NADA        = ['sopa_cat'];
+
+function makeAlmuerzo() {
+  return { proteina:null, principio:null, ensalada:null, catActiva:'carnes',
+           papas:false, sopa:false, jugo:false, arroz:false };
+}
+
+function applyProteinaDefaults(i) {
+  const a = almuerzos[i];
+  const cat = a.proteina?.cat;
+  if (!cat || SIN_NADA.includes(cat)) {
+    a.sopa = false; a.jugo = false; a.arroz = false; a.papas = false;
+  } else if (SOLO_PAPAS_JUGO.includes(cat)) {
+    a.sopa = false; a.arroz = false; a.papas = false; a.jugo = true;
+  } else {
+    a.papas = false; a.sopa = true; a.jugo = true; a.arroz = true;
+  }
+}
+
+let shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'',
+               comprobanteFile:null, comprobantePreviewUrl:null };
+let almuerzos = [];
+let step = 0;          // 0:cantidad 1:building 2:entrega 3:pago
+
+/* Showcase quantities */
+const featQty = {};
+PROTEINAS.forEach(p => { featQty[p.id] = 0; });
+
+function adjFeat(protId, delta) {
+  featQty[protId] = Math.max(0, (featQty[protId]||0) + delta);
+  const el = document.getElementById(`fq-${protId}`);
+  if (el) el.textContent = featQty[protId];
+  const total = Object.values(featQty).reduce((s,v) => s+v, 0);
+  const cta = document.getElementById('showcaseCta');
+  if (cta) {
+    cta.disabled = total === 0;
+    cta.textContent = total > 0
+      ? `Armar ${total} plato${total>1?'s':''} →`
+      : 'Selecciona al menos uno';
+  }
+  document.getElementById('totalBadge').textContent =
+    fmt(Object.entries(featQty).reduce((s,[id,q]) => {
+      const p = PROTEINAS.find(x=>x.id===id);
+      return s + (p?.precio||0)*q;
+    }, 0));
+}
+
+function armarDesdeShowcase() {
+  almuerzos = [];
+  PROTEINAS.forEach(p => {
+    const qty = featQty[p.id] || 0;
+    for (let i = 0; i < qty; i++) {
+      const a = makeAlmuerzo();
+      a.proteina = p;
+      almuerzos.push(a);
+      applyProteinaDefaults(almuerzos.length - 1);
+    }
+  });
+  if (!almuerzos.length) return;
+  shared.cantidad = almuerzos.length;
+  step = 1;
+  renderScreen();
+  document.getElementById('appScreen').scrollIntoView({ behavior:'smooth' });
+}
+let buildIdx   = 0;    // almuerzo being built
+let buildField = 'proteina'; // 'proteina'|'principio'|'ensalada'
+let buildPlateRot = 0; // accumulated rotation
+
+function needsContorno(i) {
+  const cat = almuerzos[i]?.proteina?.cat;
+  return cat && !SOLO_PAPAS_JUGO.includes(cat) && !SIN_NADA.includes(cat);
+}
+// kept for any residual references
+function anyNeedsContorno() { return almuerzos.some((_,i) => needsContorno(i)); }
+function getSteps() {
+  if (shared.cantidad === 0) return [0];
+  const s = [0, 1];
+  if (anyNeedsContorno() || almuerzos.some(a => !a.proteina)) { s.push(2, 3); }
+  s.push(4, 5, 6);
+  return s;
+}
+function curStepId() { return getSteps()[step]; }
+
+let CONFIG = { sopa:'Sancocho', jugo:'Limonada de la casa' };
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════════ */
+function init() {
+  // Quita el loading en 600ms sin esperar Supabase
+  setTimeout(() => {
+    const ov = document.getElementById('loadingOverlay');
+    if (ov) { ov.classList.add('hidden'); setTimeout(() => ov.remove(), 500); }
+  }, 600);
+
+  // Carga config en segundo plano (no bloquea)
+  sb.from('config_troya').select('key,value')
+    .then(({ data }) => {
+      if (data) data.forEach(r => {
+        if (r.key === 'sopa_del_dia') CONFIG.sopa = r.value;
+        if (r.key === 'jugo_del_dia') CONFIG.jugo = r.value;
+      });
+    })
+    .catch(() => {});
+
+  almuerzos = [makeAlmuerzo()];
+  renderScreen();
+  renderShowcase();
+  initScrollRotation();
+  initLogoScroll();
+  initFadeObserver();
+}
+init();
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLL ROTATION + PARALLAX
+══════════════════════════════════════════════════════════════ */
+// Rotaciones acumuladas por plato (crece con la cantidad de almuerzos)
+const almRots = Array(20).fill(0);
+
+function initScrollRotation() {
+  // Velocidades distintas: positivo = horario, negativo = antihorario
+  const SPEEDS = [0.05, -0.07, 0.09, 0.06, -0.08, 0.04, -0.06, 0.07];
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const s = window.scrollY;
+      document.querySelectorAll('.food-rotate').forEach((el, i) => {
+        el.style.setProperty('--food-rot', `${s * SPEEDS[i % SPEEDS.length]}deg`);
+      });
+      ticking = false;
+    });
+  }, { passive: true });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOGO SCROLL ANIMATION
+══════════════════════════════════════════════════════════════ */
+function initLogoScroll() {
+  const logo = document.querySelector('.hero-logo-center');
+  if (!logo) return;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+  const mascotEl = document.getElementById('mascotWrap');
+  const MASCOT_START = 0.82;
+
+  function update() {
+    const hero = document.getElementById('heroScreen');
+    if (!hero) return;
+    const heroH = hero.offsetHeight;
+    const raw  = Math.min(Math.max(window.scrollY / heroH, 0), 1);
+    const t    = ease(raw);
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const startW = Math.min(260, vw * 0.7);
+    const endW   = Math.min(52, vw * 0.13);
+    const curW   = lerp(startW, endW, t);
+
+    const ex = endW / 2 + 14;
+    const ey = endW / 2 + 14;
+
+    const drift = Math.sin(raw * Math.PI) * vw * 0.22;
+    const curX  = lerp(vw / 2, ex, t) + drift * (1 - t);
+    const curY  = lerp(vh / 2, ey, t);
+
+    logo.style.left  = curX + 'px';
+    logo.style.top   = curY + 'px';
+    logo.style.width = curW + 'px';
+
+    if (raw >= MASCOT_START) {
+      const mt = Math.min((raw - MASCOT_START) / (1 - MASCOT_START), 1);
+      logo.style.opacity = 1 - mt;
+      if (mascotEl) {
+        mascotEl.style.left    = ex + 'px';
+        mascotEl.style.top     = ey + 'px';
+        mascotEl.style.width   = curW + 'px';
+        mascotEl.style.opacity = mt;
+        mascotEl.classList.add('active');
+      }
+    } else {
+      logo.style.opacity = lerp(0.7, 1, t);
+      if (mascotEl) {
+        mascotEl.style.opacity = 0;
+        mascotEl.classList.remove('active');
+      }
+    }
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { update(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FADE OBSERVER
+══════════════════════════════════════════════════════════════ */
+function initFadeObserver() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); }});
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.fiu').forEach(el => obs.observe(el));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PLATE UPDATE
+══════════════════════════════════════════════════════════════ */
+const PCOLORS = {
+  lentejas:'#C4762A', pure:'#D4B483',
+  rayada:'#4A8C2A', cocida:'#7AAB3A',
+};
+
+function plateSVG(i) {
+  return `<svg class="plate-svg" viewBox="0 0 210 210">
+    <defs>
+      <clipPath id="fpc-${i}"><circle cx="105" cy="103" r="82"/></clipPath>
+    </defs>
+    <ellipse cx="105" cy="206" rx="84" ry="7" fill="rgba(0,0,0,0.07)"/>
+    <circle cx="105" cy="103" r="96" fill="#F0ECE0" stroke="#E0D8CC" stroke-width="1"/>
+    <circle cx="105" cy="103" r="88" fill="#F8F5EE" stroke="#EAE3D6" stroke-width="0.5"/>
+    <circle id="pv-prot-${i}" class="pfi" cx="105" cy="103" r="82" fill="#7B3A1A"/>
+    <image id="pv-fp-${i}" href="" x="23" y="21" width="164" height="164"
+      clip-path="url(#fpc-${i})" preserveAspectRatio="xMidYMid slice"
+      style="opacity:0;transition:opacity .5s ease"/>
+    <circle id="pv-fr-${i}" cx="105" cy="103" r="82"
+      fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1" style="opacity:0;transition:opacity .5s"/>
+    <path id="pv-pri-${i}" class="pfi" d="M 17,103 A 88,88 0 0,1 105,191"
+      fill="none" stroke="#C4762A" stroke-width="10" stroke-linecap="round"/>
+    <path id="pv-sal-${i}" class="pfi" d="M 105,191 A 88,88 0 0,1 193,103"
+      fill="none" stroke="#4A8C2A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="105" cy="103" r="96" fill="none" stroke="#D8D0C0" stroke-width="2.5"/>
+    <circle cx="105" cy="103" r="93" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+  </svg>`;
+}
+
+function updatePlate(i) {
+  const a = almuerzos[i];
+  if (!a) return;
+  const sc = SIN_CONTORNO.includes(a.proteina?.cat);
+  const g = id => document.getElementById(id);
+
+  const photoEl = g(`pv-fp-${i}`), photoRing = g(`pv-fr-${i}`);
+  if (a.proteina?.img) {
+    const url = a.proteina.img;
+    if (photoEl && photoEl.getAttribute('href') !== url) photoEl.setAttribute('href', url);
+    if (photoEl) photoEl.style.opacity = '1';
+    if (photoRing) photoRing.style.opacity = '1';
+    const pvProt = g(`pv-prot-${i}`); if (pvProt) pvProt.classList.remove('on');
+  } else {
+    if (photoEl) { photoEl.style.opacity = '0'; photoEl.setAttribute('href',''); }
+    if (photoRing) photoRing.style.opacity = '0';
+    const pvProt = g(`pv-prot-${i}`);
+    if (a.proteina && pvProt) {
+      const catData = CATEGORIAS.find(c => c.id === a.proteina.cat);
+      pvProt.setAttribute('fill', catData?.color || '#7B3A1A');
+      pvProt.classList.add('on');
+    } else if (pvProt) pvProt.classList.remove('on');
+  }
+
+  const pvBase = g(`pv-base-${i}`);
+  if (pvBase) {
+    if (a.proteina && !sc) pvBase.classList.add('on');
+    else pvBase.classList.remove('on');
+  }
+  const pvPri = g(`pv-pri-${i}`);
+  if (pvPri) {
+    if (a.principio && !sc) { pvPri.setAttribute('stroke', PCOLORS[a.principio]); pvPri.classList.add('on'); }
+    else pvPri.classList.remove('on');
+  }
+  const pvSal = g(`pv-sal-${i}`);
+  if (pvSal) {
+    if (a.ensalada && !sc) { pvSal.setAttribute('stroke', PCOLORS[a.ensalada]); pvSal.classList.add('on'); }
+    else pvSal.classList.remove('on');
+  }
+  const pvExt = g(`pv-ext-${i}`);
+  if (pvExt) {
+    if (shared.papas || shared.limonada || shared.sopa) pvExt.classList.add('on');
+    else pvExt.classList.remove('on');
+  }
+  // Actualiza nombre en header del bloque
+  const hdr = document.getElementById(`alm-hdr-prot-${i}`);
+  if (hdr) hdr.textContent = a.proteina ? a.proteina.name : 'Elige proteína…';
+}
+
+function updateAllPlates() {
+  almuerzos.forEach((_, i) => updatePlate(i));
+  document.getElementById('totalBadge').textContent = fmt(calcTotal());
+}
+
+function calcTotal() {
+  return almuerzos.reduce((s, a) => s + (a.proteina?.precio || 0), 0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER SCREEN
+══════════════════════════════════════════════════════════════ */
+function platesRowHTML() {
+  return `<div class="plates-row">${almuerzos.map((_,i)=>`
+    <div class="mini-pw-wrap">
+      <div class="mini-pw" id="alm-plate-wrap-${i}">${plateSVG(i)}</div>
+      <div class="mini-pl">Almuerzo ${i+1}</div>
+    </div>`).join('')}</div>`;
+}
+
+function iniciarBuild() {
+  step = 1; renderScreen(); window.scrollTo(0,0);
+}
+
+function checkAutoAdvance() {
+  const done = almuerzos.every((a,i) =>
+    a.proteina && (!needsContorno(i) || (a.principio && a.ensalada))
+  );
+  if (done) {
+    setTimeout(() => {
+      updateEntregaSection();
+      setTimeout(() => {
+        document.getElementById('entregaPagoSection')
+          ?.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }, 150);
+    }, 420);
+  }
+}
+
+function updateEntregaSection() {
+  const el = document.getElementById('entregaPagoSection');
+  if (!el) return;
+  const done = almuerzos.every((a,i) =>
+    a.proteina && (!needsContorno(i) || (a.principio && a.ensalada))
+  );
+  el.innerHTML = done ? entregaHTML() : '';
+}
+
+function entregaHTML() {
+  const total = calcTotal();
+  const pi = shared.pago ? PAYMENT_INFO[shared.pago] : null;
+  const needsComp = shared.pago && shared.pago !== 'efectivo';
+  const hasAddr = shared.entrega === 'tienda' ||
+    (shared.entrega === 'domicilio' && shared.direccion.trim() && shared.telefono.trim());
+  const canConfirm = shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
+
+  return `<div style="padding:1.4rem 0 0;animation:slideUp .35s ease">
+    <h2 class="step-h">¿Cómo lo recibes?</h2>
+    <p class="step-sub">Domicilio sin costo adicional 🛵</p>
+    <div class="opts" style="margin-bottom:1rem">
+      <div class="ocard ${shared.entrega==='tienda'?'sel':''}" onclick="selEnt('tienda')">
+        <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#3498DB,#1A5C8A)">🏪</div>
+        <div style="flex:1"><div class="oname">Recoger en Tienda</div><div class="odesc">Pasa a buscar tu pedido</div></div>
+        <div class="ocheck"></div>
+      </div>
+      <div class="ocard ${shared.entrega==='domicilio'?'sel':''}" onclick="selEnt('domicilio')">
+        <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#E8641A,#C04010)">🛵</div>
+        <div style="flex:1"><div class="oname">Domicilio</div><div class="odesc">Sin costo adicional</div></div>
+        <div class="ocheck"></div>
+      </div>
+    </div>
+    ${shared.entrega==='domicilio'?`
+    <div style="margin-bottom:1.2rem">
+      <div class="inp-grp"><label class="inp-lbl">Dirección</label>
+        <input class="inp" type="text" placeholder="Ej: Calle 10 # 5-20, Barrio..."
+          value="${shared.direccion}" oninput="shared.direccion=this.value"></div>
+      <div class="inp-grp"><label class="inp-lbl">Teléfono</label>
+        <input class="inp" type="tel" placeholder="Ej: 300 123 4567"
+          value="${shared.telefono}" oninput="shared.telefono=this.value"></div>
+    </div>`:''}
+    ${shared.entrega?`
+    <h2 class="step-h" style="margin-top:.6rem">Método de Pago</h2>
+    <p class="step-sub">Total: <strong style="color:var(--or)">${fmt(total)}</strong></p>
+    <div class="sumcard" style="margin-bottom:1rem">
+      ${almuerzos.map((a,idx)=>{
+        const sc=SIN_CONTORNO.includes(a.proteina?.cat);
+        const ex=[a.arroz?'Arroz':'',a.papas?'Papas':'',a.sopa?'Sopa':'',a.jugo?'Jugo':''].filter(Boolean).join(' · ');
+        return `<div class="sumrow"><span>Almuerzo ${idx+1} — ${a.proteina?.name||'?'}</span><span>${fmt(a.proteina?.precio||0)}</span></div>
+        ${!sc&&a.principio?`<div class="sumrow"><span style="color:var(--muted);font-size:.77rem;padding-left:.5rem">${a.principio==='lentejas'?'Lentejas':'Puré'} · ${a.ensalada==='rayada'?'Ens. Rayada':'Ens. Cocida'}</span><span style="color:var(--muted);font-size:.77rem">Incl.</span></div>`:''}
+        ${ex?`<div class="sumrow"><span style="color:var(--muted);font-size:.77rem;padding-left:.5rem">${ex}</span><span style="color:var(--muted);font-size:.77rem">Incl.</span></div>`:''}`;
+      }).join('')}
+      <div class="sumrow total"><span>Total</span><span>${fmt(total)}</span></div>
+    </div>
+    <div class="pay-grid">
+      ${[['nequi','💜','Nequi'],['daviplata','🔴','Daviplata'],['llave','🔑','Llave'],['efectivo','💵','Efectivo']].map(([id,icon,label])=>
+        `<div class="pcard ${shared.pago===id?'sel':''}" onclick="selPago('${id}')">
+          <span class="picon">${icon}</span>${label}</div>`
+      ).join('')}
+    </div>
+    ${pi?`<div class="pay-info show">
+      <div class="pay-info-title">Pagar con ${pi.title}</div>
+      <div class="pay-info-num">${pi.num}</div>
+      <div class="pay-info-note">${pi.note}</div>
+    </div>`:''}
+    ${needsComp?`<div class="upload-section">
+      <div class="upload-title">📸 Sube tu comprobante de pago</div>
+      <div class="upload-sub">Captura del comprobante de ${pi.title} — <strong style="color:var(--or)">obligatorio para confirmar</strong></div>
+      <label class="upload-btn-lbl">📁 Subir comprobante
+        <input type="file" accept="image/*" style="display:none" id="comprobanteInput" onchange="previewComprobante(this)">
+      </label>
+      <img id="uploadPreview" class="upload-preview" ${shared.comprobantePreviewUrl?`src="${shared.comprobantePreviewUrl}" style="display:block"`:''}>
+      <div class="upload-ok" id="uploadOk" style="display:${shared.comprobanteFile?'block':'none'}">✅ Comprobante listo</div>
+    </div>`:''}
+    <button class="btn-confirm" id="btnConfirm" onclick="confirmarPedido()" ${canConfirm?'':'disabled'}>
+      ${!shared.pago?'Selecciona método de pago':needsComp&&!shared.comprobanteFile?'Sube el comprobante para continuar':'Confirmar pedido →'}
+    </button>`:''}
+  </div>`;
+}
+
+function spinPlate(i) {
+  const el = document.getElementById(`alm-plate-wrap-${i}`);
+  if (!el) return;
+  el.classList.remove('plate-spin-once');
+  void el.offsetWidth;
+  el.classList.add('plate-spin-once');
+  setTimeout(() => el.classList.remove('plate-spin-once'), 700);
+}
+
+function acompSectionHTML(i) {
+  const a = almuerzos[i];
+  if (!a.proteina) return '';
+  const cat = a.proteina.cat;
+
+  if (SIN_NADA.includes(cat)) return '';
+
+  if (SOLO_PAPAS_JUGO.includes(cat)) {
+    return `
+    <div class="accomp-section">
+      <div class="accomp-lbl">Adicionales</div>
+      <div class="accomp-grid">
+        <div class="accomp-item ${a.papas?'on':''}" onclick="togAlm(${i},'papas')">
+          <div class="accomp-img"><img src="acompañantes/papas francesas.png" alt="Papas" loading="lazy"></div>
+          <span class="accomp-name">Papas</span>
+        </div>
+        <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
+          <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
+          <span class="accomp-name">Jugo</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `
+    <div class="accomp-section">
+      <div class="accomp-lbl">Acompañamientos</div>
+      <div class="accomp-grid">
+        <div class="accomp-item ${a.arroz?'on':''}" onclick="togAlm(${i},'arroz')">
+          <div class="accomp-img"><img src="acompañantes/porcion  de arroz blanco.png" alt="Arroz" loading="lazy"></div>
+          <span class="accomp-name">Arroz</span>
+        </div>
+        <div class="accomp-item ${a.sopa?'on':''}" onclick="togAlm(${i},'sopa')">
+          <div class="accomp-img"><img src="sopa sola.png" alt="Sopa" loading="lazy"></div>
+          <span class="accomp-name">Sopa</span>
+        </div>
+        <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
+          <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
+          <span class="accomp-name">Jugo</span>
+        </div>
+      </div>
+    </div>
+    <div class="accomp-section">
+      <div class="accomp-lbl">Principio</div>
+      <div class="accomp-grid">
+        <div class="accomp-item ${a.principio==='lentejas'?'sel':''}" onclick="selA(${i},'principio','lentejas')">
+          <div class="accomp-img"><img src="acompañantes/porcion de lentejas.png" alt="Lentejas" loading="lazy"></div>
+          <span class="accomp-name">Lentejas</span>
+        </div>
+        <div class="accomp-item ${a.principio==='pure'?'sel':''}" onclick="selA(${i},'principio','pure')">
+          <div class="accomp-img"><img src="acompañantes/porcion de pure de papas.png" alt="Puré" loading="lazy"></div>
+          <span class="accomp-name">Puré de Papa</span>
+        </div>
+      </div>
+    </div>
+    <div class="accomp-section">
+      <div class="accomp-lbl">Ensalada</div>
+      <div class="accomp-grid">
+        <div class="accomp-item ${a.ensalada==='rayada'?'sel':''}" onclick="selA(${i},'ensalada','rayada')">
+          <div class="accomp-img"><img src="ensaladas/ensalada rayada.png" alt="Rayada" loading="lazy"></div>
+          <span class="accomp-name">Rayada</span>
+        </div>
+        <div class="accomp-item ${a.ensalada==='cocida'?'sel':''}" onclick="selA(${i},'ensalada','cocida')">
+          <div class="accomp-img"><img src="ensaladas/ensalada cocida.png" alt="Cocida" loading="lazy"></div>
+          <span class="accomp-name">Cocida</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+
+function confirmarDomicilio() {
+  if (!shared.direccion.trim() || !shared.telefono.trim()) return;
+  step = 3; renderScreen(); window.scrollTo(0,0);
+}
+
+function renderShowcase() {
+  const DURS = [5, 4.2, 5.5, 4.8, 5.2, 6, 4.5, 5.8];
+  const DELS = [0, -.8, -1.6, -.4, -1.2, -.6, -2, -1];
+  let idx = 0, html = '';
+  CATEGORIAS.forEach(cat => {
+    const prots = PROTEINAS.filter(p => p.cat === cat.id);
+    if (!prots.length) return;
+    html += `<div class="sc-cat-lbl">${cat.label}</div><div class="showcase-grid">`;
+    prots.forEach(p => {
+      const dur = DURS[idx % DURS.length];
+      const del = DELS[idx % DELS.length];
+      html += `<div class="dish-card">
+        <div class="dish-img-wrap food-rotate" style="animation-duration:${dur}s;animation-delay:${del}s">
+          <img src="${p.img}" alt="${p.name}" loading="lazy">
+        </div>
+        <div class="dish-title">${p.name}</div>
+        <div class="dish-price">${fmt(p.precio)}</div>
+        <div class="dish-qty">
+          <button type="button" class="dq-btn" onclick="adjFeat('${p.id}',-1)">−</button>
+          <span class="dq-num" id="fq-${p.id}">0</span>
+          <button type="button" class="dq-btn" onclick="adjFeat('${p.id}',1)">+</button>
+        </div>
+      </div>`;
+      idx++;
+    });
+    html += '</div>';
+  });
+  document.getElementById('showcaseGrid').innerHTML = html;
+}
+
+function protCardsHTML(i) {
+  const a = almuerzos[i];
+  const filtradas = PROTEINAS.filter(p => p.cat === a.catActiva);
+  return filtradas.map(p => {
+    return `<div class="ocard ${a.proteina?.id===p.id?'sel':''}" onclick="selProt(${i},'${p.id}')">
+      <div class="oicon" style="overflow:hidden;padding:0;position:relative;background:${CAT_COLORS[p.cat]}">
+        <img src="${p.img}" style="width:100%;height:100%;object-fit:cover;display:block"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" loading="lazy">
+        <span style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:1.4rem;position:absolute;inset:0">${CAT_ICONS[p.cat]}</span>
+      </div>
+      <div style="flex:1"><div class="oname">${p.name}</div><div class="oprice">${fmt(p.precio)}</div></div>
+      <div class="ocheck"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderStep() { renderScreen(); }
+function renderScreen() {
+  const cont    = document.getElementById('stepContent');
+  const bnav    = document.getElementById('bnavBar');
+  const appScr  = document.getElementById('appScreen');
+  if (bnav) bnav.style.display = step === 0 ? 'none' : '';
+  if (appScr) appScr.style.display = step === 0 ? 'none' : 'block';
+  const ctaBtn = document.getElementById('showcaseCta');
+  if (ctaBtn) ctaBtn.style.display = step === 0 ? '' : 'none';
+
+  let h = '';
+
+  if (step === 1) {
+    const allDone = almuerzos.every((a,i) =>
+      a.proteina && (!needsContorno(i) || (a.principio && a.ensalada))
+    );
+    h = `<div style="padding:.5rem 0 7rem">
+      <div class="alm-rail">
+        ${almuerzos.map((a,i) => `
+          <div class="alm-card" id="ablock-${i}">
+            <div class="alm-top">
+              <span class="alm-num-badge">Almuerzo ${i+1}</span>
+              <div class="alm-plate-wrap food-rotate" id="alm-plate-wrap-${i}">${plateSVG(i)}</div>
+              <span class="alm-prot-name" id="alm-hdr-prot-${i}">${a.proteina?.name||'Elige proteína…'}</span>
+            </div>
+            ${!a.proteina ? `<div class="alm-section">
+              <div class="cat-tabs">${CATEGORIAS.map(c=>
+                `<button type="button" class="cat-tab ${a.catActiva===c.id?'active':''}"
+                  onclick="setcat(${i},'${c.id}')">${c.label}</button>`
+              ).join('')}</div>
+              <div class="opts" id="opts-${i}">${protCardsHTML(i)}</div>
+            </div>` : ''}
+            <div id="alm-accomp-${i}">${acompSectionHTML(i)}</div>
+          </div>`).join('')}
+      </div>
+      <div id="entregaPagoSection" style="padding:0 1rem">
+        ${allDone ? entregaHTML() : ''}
+      </div>
+    </div>`;
+
+  } else if (step === 2) {
+    h = `<div class="step-sec" style="padding-bottom:7rem">
+      ${platesRowHTML()}
+      <h2 class="step-h" style="padding-top:.8rem">¿Cómo lo recibes?</h2>
+      <p class="step-sub">Domicilio sin costo adicional 🛵</p>
+      <div class="opts">
+        <div class="ocard ${shared.entrega==='tienda'?'sel':''}" onclick="selEnt('tienda')">
+          <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#3498DB,#1A5C8A)">🏪</div>
+          <div style="flex:1"><div class="oname">Recoger en Tienda</div><div class="odesc">Pasa a buscar tu pedido</div></div>
+          <div class="ocheck"></div>
+        </div>
+        <div class="ocard ${shared.entrega==='domicilio'?'sel':''}" onclick="selEnt('domicilio')">
+          <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#E8641A,#C04010)">🛵</div>
+          <div style="flex:1"><div class="oname">Domicilio</div><div class="odesc">Sin costo adicional</div></div>
+          <div class="ocheck"></div>
+        </div>
+      </div>
+      ${shared.entrega==='domicilio'?`
+      <div style="margin-top:1.4rem">
+        <div class="inp-grp">
+          <label class="inp-lbl">Dirección</label>
+          <input class="inp" type="text" placeholder="Ej: Calle 10 # 5-20, Barrio..." value="${shared.direccion}"
+            oninput="shared.direccion=this.value">
+        </div>
+        <div class="inp-grp">
+          <label class="inp-lbl">Teléfono</label>
+          <input class="inp" type="tel" placeholder="Ej: 300 123 4567" value="${shared.telefono}"
+            oninput="shared.telefono=this.value">
+        </div>
+        <button class="btn-listo" onclick="confirmarDomicilio()">Confirmar dirección →</button>
+      </div>`:''}
+    </div>`;
+
+  } else if (step === 3) {
+    const total = calcTotal();
+    const pi = shared.pago ? PAYMENT_INFO[shared.pago] : null;
+    const needsComp = shared.pago && shared.pago !== 'efectivo';
+    const canConfirm = shared.pago && (!needsComp || shared.comprobanteFile);
+    h = `<div class="step-sec" style="padding-bottom:7rem">
+      ${platesRowHTML()}
+      <h2 class="step-h" style="padding-top:.8rem">Método de Pago</h2>
+      <p class="step-sub">Total: <strong style="color:var(--or)">${fmt(total)}</strong></p>
+      <div class="sumcard">
+        ${almuerzos.map((a,i)=>{
+          const sc=SIN_CONTORNO.includes(a.proteina?.cat);
+          const extras=[a.arroz?'Arroz':'',a.papas?'Papas':'',a.sopa?'Sopa':'',a.jugo?'Jugo':''].filter(Boolean).join(' · ');
+          return `<div class="sumrow"><span>Almuerzo ${i+1} — ${a.proteina?.name||'?'}</span><span>${fmt(a.proteina?.precio||0)}</span></div>
+          ${!sc&&a.principio?`<div class="sumrow"><span style="color:var(--muted);font-size:.77rem;padding-left:.5rem">${a.principio==='lentejas'?'Lentejas':'Puré'} · ${a.ensalada==='rayada'?'Ens. Rayada':'Ens. Cocida'}</span><span style="color:var(--muted);font-size:.77rem">Incl.</span></div>`:''}
+          ${extras?`<div class="sumrow"><span style="color:var(--muted);font-size:.77rem;padding-left:.5rem">${extras}</span><span style="color:var(--muted);font-size:.77rem">Incl.</span></div>`:''}`;
+        }).join('')}
+        <div class="sumrow total"><span>Total</span><span>${fmt(total)}</span></div>
+      </div>
+      <div class="pay-grid">
+        ${[['nequi','💜','Nequi'],['daviplata','🔴','Daviplata'],['llave','🔑','Llave'],['efectivo','💵','Efectivo']].map(([id,icon,label])=>
+          `<div class="pcard ${shared.pago===id?'sel':''}" onclick="selPago('${id}')">
+            <span class="picon">${icon}</span>${label}</div>`
+        ).join('')}
+      </div>
+      ${pi ? `<div class="pay-info show">
+        <div class="pay-info-title">Pagar con ${pi.title}</div>
+        <div class="pay-info-num">${pi.num}</div>
+        <div class="pay-info-note">${pi.note}</div>
+      </div>` : ''}
+      ${needsComp ? `<div class="upload-section">
+        <div class="upload-title">📸 Sube tu comprobante de pago</div>
+        <div class="upload-sub">Toma foto o captura del comprobante de ${pi.title} — <strong style="color:var(--or)">obligatorio para confirmar</strong></div>
+        <label class="upload-btn-lbl">
+          📁 Subir comprobante
+          <input type="file" accept="image/*" style="display:none" id="comprobanteInput" onchange="previewComprobante(this)">
+        </label>
+        <img id="uploadPreview" class="upload-preview" ${shared.comprobantePreviewUrl?`src="${shared.comprobantePreviewUrl}" style="display:block"`:''}>
+        <div class="upload-ok" id="uploadOk" style="display:${shared.comprobanteFile?'block':'none'}">✅ Comprobante listo — ya puedes confirmar</div>
+      </div>` : ''}
+      <button class="btn-confirm" onclick="confirmarPedido()" ${canConfirm?'':'disabled'}>
+        ${!shared.pago ? 'Selecciona método de pago' : needsComp && !shared.comprobanteFile ? 'Sube el comprobante para continuar' : 'Confirmar pedido →'}
+      </button>
+    </div>`;
+  }
+
+  cont.innerHTML = h;
+  document.getElementById('totalBadge').textContent = fmt(calcTotal());
+  setTimeout(() => almuerzos.forEach((_,i) => updatePlate(i)), 0);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SELECCIÓN
+══════════════════════════════════════════════════════════════ */
+function adjCant(d) {
+  const n = Math.max(1, (shared.cantidad || 1) + d);
+  shared.cantidad = n;
+  while (almuerzos.length < n) almuerzos.push(makeAlmuerzo());
+  while (almuerzos.length > n) almuerzos.pop();
+  const numEl = document.getElementById('qtyNum');
+  if (numEl) numEl.textContent = n;
+}
+function setcat(i, cat) {
+  almuerzos[i].catActiva = cat;
+  const optsEl = document.getElementById(`opts-${i}`);
+  if (optsEl) { optsEl.innerHTML = protCardsHTML(i); return; }
+  renderScreen();
+}
+function selProt(i, id) {
+  const a = almuerzos[i];
+  a.proteina = PROTEINAS.find(p => p.id === id);
+  if (SIN_CONTORNO.includes(a.proteina.cat)) { a.principio = null; a.ensalada = null; }
+  applyProteinaDefaults(i);
+  updatePlate(i);
+  const optsEl = document.getElementById(`opts-${i}`);
+  if (optsEl) optsEl.innerHTML = protCardsHTML(i);
+  const hdr = document.getElementById(`alm-hdr-prot-${i}`);
+  if (hdr) hdr.textContent = a.proteina.name;
+  const accompEl = document.getElementById(`alm-accomp-${i}`);
+  if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+  document.getElementById('totalBadge').textContent = fmt(calcTotal());
+  spinPlate(i);
+  checkAutoAdvance();
+}
+function selA(i, campo, val) {
+  almuerzos[i][campo] = val;
+  updatePlate(i);
+  const accompEl = document.getElementById(`alm-accomp-${i}`);
+  if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+  checkAutoAdvance();
+}
+function togAlm(i, campo) {
+  almuerzos[i][campo] = !almuerzos[i][campo];
+  const accompEl = document.getElementById(`alm-accomp-${i}`);
+  if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+}
+function selEnt(v) {
+  shared.entrega = v;
+  if (v === 'tienda') { shared.direccion = ''; shared.telefono = ''; }
+  updateEntregaSection();
+}
+function selPago(v) {
+  shared.pago = v;
+  shared.comprobanteFile = null;
+  shared.comprobantePreviewUrl = null;
+  updateEntregaSection();
+}
+
+function previewComprobante(input) {
+  const file = input.files[0];
+  if (!file) return;
+  shared.comprobanteFile = file;
+  shared.comprobantePreviewUrl = URL.createObjectURL(file);
+  const preview = document.getElementById('uploadPreview');
+  const ok      = document.getElementById('uploadOk');
+  const btn     = document.getElementById('btnConfirm') || document.querySelector('.btn-confirm');
+  if (preview) { preview.src = shared.comprobantePreviewUrl; preview.style.display = 'block'; }
+  if (ok)      ok.style.display = 'block';
+  if (btn)     { btn.disabled = false; btn.textContent = 'Confirmar pedido →'; }
+}
+
+function confirmarPedido() {
+  if (!shared.pago) { alert('Selecciona un método de pago 💳'); return; }
+  if (shared.pago !== 'efectivo' && !shared.comprobanteFile) {
+    alert('Sube el comprobante de pago 📸'); return;
+  }
+  enviar();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAVEGACIÓN
+══════════════════════════════════════════════════════════════ */
+function goBack() {
+  if (step > 0) {
+    step--;
+    renderScreen();
+    if (step === 0) {
+      document.getElementById('menuShowcase')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    } else {
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INICIAR
+══════════════════════════════════════════════════════════════ */
+function iniciarPedido() {
+  document.getElementById('appScreen').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ENVIAR
+══════════════════════════════════════════════════════════════ */
+async function enviar() {
+  document.getElementById('stepContent').innerHTML = `
+    <div style="text-align:center;padding:4rem 1rem">
+      <div class="loading-ring"></div>
+      <p style="color:var(--muted);margin-top:1.2rem;font-size:.9rem">Enviando pedido…</p>
+    </div>`;
+  let comprobanteUrl = null;
+  if (shared.comprobanteFile) {
+    try {
+      const f = shared.comprobanteFile;
+      const ext = f.type.includes('png')?'png':f.type.includes('webp')?'webp':f.type.includes('gif')?'gif':'jpg';
+      const fileName = 'troya_' + Date.now() + '.' + ext;
+      const { error: upErr } = await sb.storage.from('COMPROBANTES').upload(fileName, f, { upsert:true, contentType:f.type });
+      if (!upErr) {
+        const { data: urlData } = sb.storage.from('COMPROBANTES').getPublicUrl(fileName);
+        comprobanteUrl = urlData.publicUrl;
+      }
+    } catch(e) { console.error('Comprobante upload:', e); }
+  }
+  try {
+    const pedidoId = crypto.randomUUID();
+    const rows = almuerzos.map(a => ({
+      pedido_id:       pedidoId,
+      proteina:        a.proteina?.name,
+      principio:       a.principio || null,
+      ensalada:        a.ensalada  || null,
+      arroz:           a.arroz,
+      papas:           a.papas,
+      sopa:            a.sopa,
+      jugo:            a.jugo,
+      tipo_entrega:    shared.entrega,
+      direccion:       shared.direccion || null,
+      telefono:        shared.telefono  || null,
+      metodo_pago:     shared.pago,
+      comprobante_url: comprobanteUrl,
+      total:           a.proteina?.precio || 0,
+      estado:          'pendiente',
+    }));
+    await sb.from('ordenes_troya').insert(rows);
+  } catch(e) { console.error(e); }
+  mostrarConfirm();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONFIRMACIÓN
+══════════════════════════════════════════════════════════════ */
+function mostrarConfirm() {
+  document.getElementById('appScreen').style.visibility = 'hidden';
+  const c = document.getElementById('confirmScreen');
+  c.style.display = 'flex';
+  document.getElementById('confSub').textContent =
+    shared.entrega === 'domicilio'
+      ? 'Tu pedido está en preparación. Pronto lo recibirás en tu puerta. 🛵'
+      : 'Tu pedido está en preparación. Pasa pronto a buscarlo. 🏪';
+
+  const items = [
+    ...almuerzos.map((a,i) => {
+      const sc = SIN_CONTORNO.includes(a.proteina?.cat);
+      const extras = [a.arroz?'Arroz':'',a.papas?'Papas':'',a.sopa?'Sopa':'',a.jugo?'Jugo':''].filter(Boolean).join(', ');
+      const det = (!sc && a.principio ? ` · ${a.principio==='lentejas'?'Lentejas':'Puré'} · Ens. ${a.ensalada==='rayada'?'Rayada':'Cocida'}` : '') + (extras ? ` · ${extras}` : '');
+      return [`Almuerzo ${i+1}`, (a.proteina?.name||'') + det];
+    }),
+    ['Entrega', shared.entrega === 'domicilio' ? 'Domicilio' : 'Recoger en Tienda'],
+    ['Pago', shared.pago?.charAt(0).toUpperCase() + shared.pago?.slice(1)],
+    ['Total', fmt(calcTotal())],
+  ].filter(Boolean);
+
+  document.getElementById('confDetail').innerHTML = items.map(([k,v]) =>
+    `<div class="conf-item"><span>${k}</span><strong>${v}</strong></div>`
+  ).join('');
+}
+
+function resetPedido() {
+  step = 0;
+  shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'',
+             comprobanteFile:null, comprobantePreviewUrl:null };
+  almuerzos = [makeAlmuerzo()];
+  Object.keys(featQty).forEach(k => {
+    featQty[k] = 0;
+    const el = document.getElementById(`fq-${k}`);
+    if (el) el.textContent = '0';
+  });
+  const cta = document.getElementById('showcaseCta');
+  if (cta) { cta.disabled=true; cta.textContent='Selecciona al menos uno'; }
+  document.getElementById('confirmScreen').style.display = 'none';
+  document.getElementById('appScreen').style.visibility = '';
+  renderScreen();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// Reiniciar desde el video si lleva más de 30 min inactivo
+const INACTIVITY_MS = 30 * 60 * 1000;
+let _lastActivity = Date.now();
+['click','touchstart','keydown','scroll'].forEach(ev =>
+  document.addEventListener(ev, () => { _lastActivity = Date.now(); }, { passive:true })
+);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && Date.now() - _lastActivity > INACTIVITY_MS) {
+    resetPedido();
+  }
+});
+</script>
+</body>
+</html>
