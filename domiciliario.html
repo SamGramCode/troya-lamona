@@ -177,7 +177,15 @@ function groupRows(rows) {
     }
     map[key].ids.push(r.id);
     if (r.proteina) {
-      map[key].items.push(r.proteina + (r.principio ? ` + ${r.principio}` : ''));
+      const extras = [
+        r.principio || null,
+        r.ensalada  || null,
+        r.arroz  ? 'Arroz'  : null,
+        r.papas  ? 'Papas'  : null,
+        r.sopa   ? 'Sopa'   : null,
+        r.jugo   ? 'Jugo'   : null,
+      ].filter(Boolean).join(', ');
+      map[key].items.push(r.proteina + (extras ? ` · ${extras}` : ''));
     }
   }
   return Object.values(map);
