@@ -461,6 +461,28 @@ input{font-family:inherit}
 .sc-cat-lbl{font-size:.65rem;font-weight:900;letter-spacing:4px;text-transform:uppercase;
   color:var(--or);padding:1.8rem 0 .6rem;border-bottom:2px solid rgba(212,80,10,.12);
   margin-bottom:1rem}
+/* ── SIDEBAR CATEGORÍAS ────────────────────────────────────── */
+.showcase-layout{display:flex;align-items:flex-start}
+.cat-sidebar{width:150px;flex-shrink:0;position:sticky;top:0;height:100vh;
+  overflow-y:auto;padding:1.5rem 0;border-right:1px solid rgba(0,0,0,.06);
+  background:var(--bg);scrollbar-width:none}
+.cat-sidebar::-webkit-scrollbar{display:none}
+.cat-item{display:block;width:100%;padding:.7rem 1rem .7rem 1.1rem;
+  font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;
+  color:#bbb;cursor:pointer;border:none;background:none;text-align:left;
+  border-left:3px solid transparent;transition:all .2s;font-family:inherit;line-height:1.4}
+.cat-item:hover{color:var(--or)}
+.cat-item.active{color:var(--or);border-left-color:var(--or);background:rgba(232,100,26,.05)}
+.cat-section{scroll-margin-top:8px}
+@media(max-width:640px){
+  .showcase-layout{flex-direction:column}
+  .cat-sidebar{width:100%;height:auto;position:sticky;top:0;z-index:50;
+    display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;
+    padding:.6rem .8rem;border-right:none;border-bottom:1px solid rgba(0,0,0,.07);gap:.4rem}
+  .cat-item{flex-shrink:0;border-left:none;border-radius:20px;padding:.45rem .9rem;
+    background:rgba(0,0,0,.04);white-space:nowrap}
+  .cat-item.active{background:rgba(232,100,26,.1);border-left:none;color:var(--or)}
+}
 
 /* ── MASCOT ────────────────────────────────────────────────── */
 .mascot-wrap{position:fixed;z-index:200;pointer-events:none;opacity:0;
@@ -599,14 +621,17 @@ input{font-family:inherit}
      MENU SHOWCASE
 ══════════════════════════════════════════════════════ -->
 <section id="menuShowcase" style="background:var(--bg)">
-  <div class="showcase">
-    <h2 class="showcase-title">Nuestros Platos</h2>
-    <p class="showcase-sub">Selecciona cuántos quieres de cada uno</p>
-    <div id="showcaseGrid"></div>
-    <button class="showcase-cta" id="showcaseCta" disabled onclick="armarDesdeShowcase()">
+  <div class="showcase-layout">
+    <nav class="cat-sidebar" id="catSidebar"></nav>
+    <div class="showcase">
+      <h2 class="showcase-title">Nuestros Platos</h2>
+      <p class="showcase-sub">Selecciona cuántos quieres de cada uno</p>
+      <div id="showcaseGrid"></div>
+    </div>
+  </div>
+  <button class="showcase-cta" id="showcaseCta" disabled onclick="armarDesdeShowcase()">
       Selecciona al menos uno
     </button>
-  </div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════
@@ -1256,7 +1281,7 @@ function renderShowcase() {
   CATEGORIAS.forEach(cat => {
     const prots = PROTEINAS.filter(p => p.cat === cat.id);
     if (!prots.length) return;
-    html += `<div class="sc-cat-lbl">${cat.label}</div><div class="showcase-grid">`;
+    html += `<div id="cat-${cat.id}" class="cat-section"><div class="sc-cat-lbl">${cat.label}</div><div class="showcase-grid">`;
     prots.forEach(p => {
       const dur = DURS[idx % DURS.length];
       const del = DELS[idx % DELS.length];
@@ -1274,9 +1299,10 @@ function renderShowcase() {
       </div>`;
       idx++;
     });
-    html += '</div>';
+    html += '</div></div>';
   });
   document.getElementById('showcaseGrid').innerHTML = html;
+  renderSidebar();
 }
 
 function protCardsHTML(i) {
@@ -1730,6 +1756,37 @@ function initTimeline() {
   clearInterval(_pollInterval);
   _pollInterval = setInterval(pollStatus, 10000);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR CATEGORÍAS
+══════════════════════════════════════════════════════════════ */
+function renderSidebar() {
+  const nav = document.getElementById('catSidebar');
+  if (!nav) return;
+  nav.innerHTML = CATEGORIAS
+    .filter(cat => PROTEINAS.some(p => p.cat === cat.id))
+    .map(cat => `<button class="cat-item" data-cat="${cat.id}" onclick="scrollToCat('${cat.id}')">${cat.label}</button>`)
+    .join('');
+  updateActiveCat();
+}
+
+function scrollToCat(catId) {
+  const el = document.getElementById('cat-' + catId);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function updateActiveCat() {
+  const sections = document.querySelectorAll('.cat-section');
+  const items    = document.querySelectorAll('.cat-item');
+  if (!sections.length || !items.length) return;
+  let activeId = sections[0].id.replace('cat-','');
+  sections.forEach(s => {
+    if (s.getBoundingClientRect().top <= 150) activeId = s.id.replace('cat-','');
+  });
+  items.forEach(item => item.classList.toggle('active', item.dataset.cat === activeId));
+}
+
+window.addEventListener('scroll', updateActiveCat, { passive:true });
 
 initTimeline();
 
