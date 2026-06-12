@@ -1085,10 +1085,10 @@ function entregaHTML() {
     <div style="margin-bottom:1.2rem">
       <div class="inp-grp"><label class="inp-lbl">Dirección</label>
         <input class="inp" type="text" placeholder="Ej: Calle 10 # 5-20, Barrio..."
-          value="${shared.direccion}" oninput="shared.direccion=this.value"></div>
+          value="${shared.direccion}" oninput="shared.direccion=this.value;updateConfirmBtn()"></div>
       <div class="inp-grp"><label class="inp-lbl">Teléfono</label>
         <input class="inp" type="tel" placeholder="Ej: 300 123 4567"
-          value="${shared.telefono}" oninput="shared.telefono=this.value"></div>
+          value="${shared.telefono}" oninput="shared.telefono=this.value;updateConfirmBtn()"></div>
     </div>`:''}
     ${shared.entrega?`
     <h2 class="step-h" style="margin-top:.6rem">Método de Pago</h2>
@@ -1439,6 +1439,19 @@ function selPago(v) {
   shared.comprobanteFile = null;
   shared.comprobantePreviewUrl = null;
   updateEntregaSection();
+}
+
+function updateConfirmBtn() {
+  const btn = document.getElementById('btnConfirm');
+  if (!btn) return;
+  const needsComp = shared.pago && shared.pago !== 'efectivo';
+  const hasAddr = shared.entrega === 'tienda' ||
+    (shared.entrega === 'domicilio' && shared.direccion.trim() && shared.telefono.trim());
+  const canConfirm = shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
+  btn.disabled = !canConfirm;
+  if (!shared.pago) btn.textContent = 'Selecciona método de pago';
+  else if (needsComp && !shared.comprobanteFile) btn.textContent = 'Sube el comprobante para continuar';
+  else btn.textContent = 'Confirmar pedido →';
 }
 
 function previewComprobante(input) {
