@@ -844,12 +844,12 @@ async function imprimirPedido(pedidoId) {
     '',
   ].filter(l => l !== null);
 
-  document.getElementById('printTicket').textContent = lineas.join('\n');
-  window.print();
-
   if (p.estado === 'pendiente') {
     await avanzar(pedidoId, 'preparando');
   }
+
+  document.getElementById('printTicket').textContent = lineas.join('\n');
+  window.print();
 }
 
 async function cancelarPedido(pedidoId) {
