@@ -767,7 +767,7 @@ function applyProteinaDefaults(i) {
   }
 }
 
-let shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'',
+let shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'', nombre:'',
                comprobanteFile:null, comprobantePreviewUrl:null };
 let almuerzos = [];
 let step = 0;          // 0:cantidad 1:building 2:entrega 3:pago
@@ -1095,7 +1095,7 @@ function entregaHTML() {
   const pi = shared.pago ? PAYMENT_INFO[shared.pago] : null;
   const needsComp = shared.pago && shared.pago !== 'efectivo';
   const hasAddr = shared.entrega === 'tienda' ||
-    (shared.entrega === 'domicilio' && shared.direccion.trim() && shared.telefono.trim());
+    (shared.entrega === 'domicilio' && shared.nombre.trim() && shared.direccion.trim() && shared.telefono.trim());
   const canConfirm = shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
 
   return `<div style="padding:1.4rem 0 0;animation:slideUp .35s ease">
@@ -1115,6 +1115,9 @@ function entregaHTML() {
     </div>
     ${shared.entrega==='domicilio'?`
     <div style="margin-bottom:1.2rem">
+      <div class="inp-grp"><label class="inp-lbl">Nombre de quien recibe</label>
+        <input class="inp" type="text" placeholder="Ej: María García"
+          value="${shared.nombre}" oninput="shared.nombre=this.value;updateConfirmBtn()"></div>
       <div class="inp-grp"><label class="inp-lbl">Dirección</label>
         <input class="inp" type="text" placeholder="Ej: Calle 10 # 5-20, Barrio..."
           value="${shared.direccion}" oninput="shared.direccion=this.value;updateConfirmBtn()"></div>
@@ -1478,7 +1481,7 @@ function updateConfirmBtn() {
   if (!btn) return;
   const needsComp = shared.pago && shared.pago !== 'efectivo';
   const hasAddr = shared.entrega === 'tienda' ||
-    (shared.entrega === 'domicilio' && shared.direccion.trim() && shared.telefono.trim());
+    (shared.entrega === 'domicilio' && shared.nombre.trim() && shared.direccion.trim() && shared.telefono.trim());
   const canConfirm = shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
   btn.disabled = !canConfirm;
   if (!shared.pago) btn.textContent = 'Selecciona método de pago';
@@ -1564,6 +1567,7 @@ async function enviar() {
       sopa:            a.sopa,
       jugo:            a.jugo,
       tipo_entrega:    shared.entrega,
+      nombre_recibe:   shared.nombre   || null,
       direccion:       shared.direccion || null,
       telefono:        shared.telefono  || null,
       metodo_pago:     shared.pago,
@@ -1610,7 +1614,7 @@ function mostrarConfirm() {
 
 function resetPedido() {
   step = 0;
-  shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'',
+  shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'', nombre:'',
              comprobanteFile:null, comprobantePreviewUrl:null };
   almuerzos = [makeAlmuerzo()];
   Object.keys(featQty).forEach(k => {

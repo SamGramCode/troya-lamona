@@ -170,9 +170,9 @@ function groupRows(rows) {
       map[key] = {
         pedido_id: r.pedido_id, ids: [], items: [],
         estado: r.estado, estado_entrega: r.estado_entrega,
-        domiciliario: r.domiciliario, direccion: r.direccion,
-        telefono: r.telefono, metodo_pago: r.metodo_pago,
-        created_at: r.created_at,
+        domiciliario: r.domiciliario, nombre_recibe: r.nombre_recibe,
+        direccion: r.direccion, telefono: r.telefono,
+        metodo_pago: r.metodo_pago, created_at: r.created_at,
       };
     }
     map[key].ids.push(r.id);
@@ -232,6 +232,7 @@ function render() {
           </div>
           <div class="card-body">
             <div class="items">${p.items.join('<br>') || 'Sin detalle'}</div>
+            ${p.nombre_recibe ? `👤 ${p.nombre_recibe}<br>` : ''}
             ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
             ${p.telefono ? `📞 ${p.telefono}<br>` : ''}
             💳 ${p.metodo_pago || '—'}
@@ -250,6 +251,7 @@ function render() {
           </div>
           <div class="card-body">
             <div class="items">${p.items.join('<br>') || 'Sin detalle'}</div>
+            ${p.nombre_recibe ? `👤 ${p.nombre_recibe}<br>` : ''}
             ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
             ${p.telefono ? `📞 ${p.telefono}<br>` : ''}
             💳 ${p.metodo_pago || '—'}
