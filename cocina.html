@@ -181,6 +181,10 @@ input,select,textarea{font-family:inherit}
   color:var(--rej);padding:.75rem .6rem;border-radius:10px;font-size:.78rem;
   flex-shrink:0;transition:all .2s}
 .btn-del:hover{background:rgba(220,50,50,.18)}
+.btn-print{background:rgba(46,125,181,.08);border:1px solid rgba(46,125,181,.2);
+  color:var(--prep);padding:.75rem .7rem;border-radius:10px;font-size:.78rem;
+  flex-shrink:0;transition:all .2s}
+.btn-print:hover{background:rgba(46,125,181,.18)}
 
 /* ── ENTREGADOS (strip) ─────────────────── */
 .delivered-section{padding:1rem 1.4rem;border-top:2px solid var(--bd);background:var(--bg2)}
@@ -754,6 +758,7 @@ function cardHTML(p) {
     </div>
     <div class="oc-actions">
       ${actionBtn}
+      <button class="btn-print" onclick="imprimirPedido('${p.pedido_id}')" title="Imprimir">🖨️</button>
       <button class="btn-edit-sm" onclick="openEdit('${p.pedido_id}')">✏️</button>
       <button class="btn-del" onclick="cancelarPedido('${p.pedido_id}')" title="Cancelar">✕</button>
     </div>
@@ -806,6 +811,45 @@ async function avanzar(pedidoId, nuevoEstado) {
     .update({ estado: nuevoEstado })
     .in('id', p.ids);
   if (nuevoEstado === 'entregado') toast('Pedido entregado 🎉', 't-ok');
+}
+
+async function imprimirPedido(pedidoId) {
+  const p = pedidos.find(x => x.pedido_id === pedidoId);
+  if (!p) return;
+
+  const hora = new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  const lineas = [
+    '================================',
+    '  TROYA — EL SAZÓN DE LA MONA  ',
+    '================================',
+    `Pedido #${p.first_id}   ${hora}`,
+    `Entrega: ${p.tipo_entrega === 'domicilio' ? 'Domicilio' : 'Tienda'}`,
+    p.telefono ? `Tel: ${p.telefono}` : '',
+    p.direccion ? `Dir: ${p.direccion}` : '',
+    '--------------------------------',
+    ...p.almuerzos.map((a, i) => [
+      `ALMUERZO ${i + 1}:`,
+      `  ${a.proteina || '—'}`,
+      a.principio ? `  + ${a.principio === 'lentejas' ? 'Lentejas' : 'Puré de papa'}` : '',
+      a.ensalada  ? `  + Ensalada ${a.ensalada === 'rayada' ? 'Rayada' : 'Cocida'}` : '',
+      a.arroz ? '  + Arroz' : '  - Sin arroz',
+      a.sopa  ? '  + Sopa'  : '  - Sin sopa',
+      a.papas ? '  + Papas' : '',
+      a.jugo  ? '  + Jugo'  : '',
+    ].filter(Boolean)).flat(),
+    '--------------------------------',
+    `Pago: ${ {nequi:'Nequi',daviplata:'Daviplata',llave:'Llave B-reve',efectivo:'Efectivo'}[p.metodo_pago] || p.metodo_pago }`,
+    `Total: ${fmt(p.total)}`,
+    '================================',
+    '',
+  ].filter(l => l !== null);
+
+  document.getElementById('printTicket').textContent = lineas.join('\n');
+  window.print();
+
+  if (p.estado === 'pendiente') {
+    await avanzar(pedidoId, 'preparando');
+  }
 }
 
 async function cancelarPedido(pedidoId) {
