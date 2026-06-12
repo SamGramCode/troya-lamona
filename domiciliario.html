@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Repartidor — Troya La Mona</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{--or:#E8641A;--orl:#d05510;--dark:#1a1207;--bg:#f5f0eb;--white:#fff;--muted:#888}
+
+    body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh}
+
+    /* ── LOGIN ── */
+    #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      padding:2rem;background:linear-gradient(160deg,#1a0a00,#3d1a00)}
+    .login-card{background:var(--white);border-radius:24px;padding:2.5rem 2rem;
+      max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .login-icon{font-size:3.5rem;margin-bottom:1rem}
+    .login-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--dark);margin-bottom:.3rem}
+    .login-sub{color:var(--muted);font-size:.85rem;margin-bottom:1.8rem}
+    .login-input{width:100%;padding:1rem;border:2px solid #e8e8e8;border-radius:12px;
+      font-size:1.2rem;text-align:center;outline:none;transition:border-color .2s;
+      font-family:inherit;background:#fff}
+    .login-input:focus{border-color:var(--or)}
+    .login-btn{display:block;width:100%;padding:1rem;background:var(--or);color:#fff;
+      border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;
+      margin-top:1rem;transition:all .2s;font-family:inherit}
+    .login-btn:active{transform:scale(.98);opacity:.9}
+
+    /* ── DASHBOARD ── */
+    #dashboard{display:none;padding-bottom:3rem}
+
+    header{background:var(--dark);color:#fff;padding:14px 16px;display:flex;
+      align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .header-left{display:flex;align-items:center;gap:8px}
+    .dot-live{width:8px;height:8px;border-radius:50%;background:#2ecc71;
+      animation:blink 1.4s infinite;flex-shrink:0}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    .header-name{font-weight:700;font-size:1rem}
+    .header-right{display:flex;align-items:center;gap:8px}
+    .count-pill{background:var(--or);color:#fff;padding:3px 12px;
+      border-radius:20px;font-size:.8rem;font-weight:800}
+    .change-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
+      padding:5px 10px;border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit}
+
+    /* ── SECTIONS ── */
+    .section{padding:16px 12px 0}
+    .section-label{font-size:.68rem;font-weight:800;text-transform:uppercase;
+      letter-spacing:.12em;color:var(--muted);margin-bottom:10px}
+
+    /* ── CARDS ── */
+    .card{background:var(--white);border-radius:16px;padding:16px;margin-bottom:10px;
+      border-left:5px solid var(--or);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .card.camino{border-left-color:#2980b9}
+    .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .card-code{font-family:'Courier New',monospace;font-size:1.5rem;font-weight:900;
+      color:var(--or);letter-spacing:.06em}
+    .card-code.azul{color:#2980b9}
+    .card-time{font-size:.72rem;color:var(--muted)}
+    .card-body{font-size:.88rem;line-height:1.8;color:#444}
+    .card-body .items{font-weight:700;color:var(--dark);margin-bottom:3px}
+
+    .btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;
+      font-size:1rem;font-weight:700;cursor:pointer;margin-top:12px;font-family:inherit;
+      transition:opacity .15s,transform .1s;letter-spacing:.02em}
+    .btn:active{transform:scale(.98);opacity:.85}
+    .btn-tomar{background:var(--or);color:#fff}
+    .btn-entregado{background:#27ae60;color:#fff}
+
+    .empty{text-align:center;padding:24px;color:var(--muted);font-size:.88rem;
+      background:var(--white);border-radius:16px}
+
+    .statusbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);
+      border-top:1px solid #eee;padding:7px 16px;font-size:.68rem;color:var(--muted);
+      text-align:center;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon">🚲</div>
+    <h1 class="login-title">Troya Repartidores</h1>
+    <p class="login-sub">Escribe tu nombre para entrar</p>
+    <input class="login-input" id="nameInput" type="text"
+      placeholder="Tu nombre..." maxlength="20" autocomplete="off"
+      onkeydown="if(event.key==='Enter')entrar()">
+    <button class="login-btn" onclick="entrar()">Entrar 🚲</button>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <span class="dot-live"></span>
+      <span class="header-name" id="headerName">—</span>
+    </div>
+    <div class="header-right">
+      <span class="count-pill" id="countPill">0</span>
+      <button class="change-btn" onclick="cambiarNombre()">Cambiar nombre</button>
+    </div>
+  </header>
+
+  <div class="section">
+    <div class="section-label">📦 Listos para llevar</div>
+    <div id="disponibles"></div>
+  </div>
+
+  <div class="section" style="margin-top:8px">
+    <div class="section-label">🚲 Mis pedidos en camino</div>
+    <div id="enCamino"></div>
+  </div>
+</div>
+
+<div class="statusbar" id="statusbar">Conectando...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://zdffezoyltxxdjjruxrj.supabase.co';
+const SB_KEY = 'sb_publishable_sFANrZ5bRpslGqqwBOhdOA_xD5t6aVt';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+let driverName = '';
+let pedidos = [];
+let pollTimer = null;
+
+/* ── INICIO ── */
+function init() {
+  const saved = localStorage.getItem('driver_name');
+  if (saved) { driverName = saved; mostrarDashboard(); }
+  else { document.getElementById('loginScreen').style.display = 'flex'; }
+}
+
+function entrar() {
+  const val = document.getElementById('nameInput').value.trim();
+  if (!val) { document.getElementById('nameInput').focus(); return; }
+  driverName = val;
+  localStorage.setItem('driver_name', driverName);
+  mostrarDashboard();
+}
+
+function cambiarNombre() {
+  localStorage.removeItem('driver_name');
+  driverName = '';
+  clearInterval(pollTimer);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('nameInput').value = '';
+  setTimeout(() => document.getElementById('nameInput').focus(), 100);
+}
+
+function mostrarDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('headerName').textContent = driverName;
+  cargar();
+  startRealtime();
+  pollTimer = setInterval(cargar, 10000);
+}
+
+/* ── DATOS ── */
+function groupRows(rows) {
+  const map = {};
+  for (const r of rows) {
+    const key = r.pedido_id || `_${r.id}`;
+    if (!map[key]) {
+      map[key] = {
+        pedido_id: r.pedido_id, ids: [], items: [],
+        estado: r.estado, estado_entrega: r.estado_entrega,
+        domiciliario: r.domiciliario, direccion: r.direccion,
+        telefono: r.telefono, metodo_pago: r.metodo_pago,
+        created_at: r.created_at,
+      };
+    }
+    map[key].ids.push(r.id);
+    if (r.proteina) {
+      map[key].items.push(r.proteina + (r.principio ? ` + ${r.principio}` : ''));
+    }
+  }
+  return Object.values(map);
+}
+
+async function cargar() {
+  const { data, error } = await sb
+    .from('ordenes_troya')
+    .select('*')
+    .eq('tipo_entrega', 'domicilio')
+    .not('estado', 'eq', 'entregado')
+    .order('created_at', { ascending: true });
+
+  if (error) { document.getElementById('statusbar').textContent = '⚠️ Error de conexión'; return; }
+  pedidos = groupRows(data || []);
+  render();
+  const t = new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('statusbar').innerHTML = `<span style="color:#2ecc71">●</span> Actualizado ${t}`;
+}
+
+/* ── RENDER ── */
+function code(id) { return id ? id.slice(-6).toUpperCase() : '------'; }
+function timeAgo(ts) {
+  if (!ts) return '';
+  const m = Math.floor((Date.now() - new Date(ts)) / 60000);
+  if (m < 1) return 'Ahora mismo';
+  if (m === 1) return 'Hace 1 min';
+  return `Hace ${m} min`;
+}
+
+function render() {
+  const disponibles = pedidos.filter(p => !p.domiciliario && p.estado === 'listo');
+  const camino = pedidos.filter(p => p.domiciliario === driverName && p.estado_entrega !== 'entregado');
+
+  document.getElementById('countPill').textContent = disponibles.length;
+
+  // Disponibles
+  document.getElementById('disponibles').innerHTML = disponibles.length
+    ? disponibles.map(p => `
+        <div class="card">
+          <div class="card-top">
+            <span class="card-code">#${code(p.pedido_id)}</span>
+            <span class="card-time">${timeAgo(p.created_at)}</span>
+          </div>
+          <div class="card-body">
+            <div class="items">${p.items.join('<br>') || 'Sin detalle'}</div>
+            ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
+            ${p.telefono ? `📞 ${p.telefono}<br>` : ''}
+            💳 ${p.metodo_pago || '—'}
+          </div>
+          <button class="btn btn-tomar" onclick="tomar('${p.pedido_id}')">🚲 Tomar este pedido</button>
+        </div>`).join('')
+    : '<div class="empty">Sin pedidos listos por ahora 🕐</div>';
+
+  // En camino
+  document.getElementById('enCamino').innerHTML = camino.length
+    ? camino.map(p => `
+        <div class="card camino">
+          <div class="card-top">
+            <span class="card-code azul">#${code(p.pedido_id)}</span>
+            <span class="card-time">${timeAgo(p.created_at)}</span>
+          </div>
+          <div class="card-body">
+            <div class="items">${p.items.join('<br>') || 'Sin detalle'}</div>
+            ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
+            ${p.telefono ? `📞 ${p.telefono}<br>` : ''}
+            💳 ${p.metodo_pago || '—'}
+          </div>
+          <button class="btn btn-entregado" onclick="entregar('${p.pedido_id}')">✅ Marcar como Entregado</button>
+        </div>`).join('')
+    : '<div class="empty">No tienes pedidos en camino</div>';
+}
+
+/* ── ACCIONES ── */
+async function tomar(pedidoId) {
+  const p = pedidos.find(x => x.pedido_id === pedidoId);
+  if (!p) return;
+  p.domiciliario = driverName;
+  p.estado_entrega = 'en_camino';
+  render();
+  const { error } = await sb
+    .from('ordenes_troya')
+    .update({ domiciliario: driverName, estado_entrega: 'en_camino' })
+    .in('id', p.ids);
+  if (error) { p.domiciliario = null; p.estado_entrega = 'pendiente'; render(); }
+}
+
+async function entregar(pedidoId) {
+  const p = pedidos.find(x => x.pedido_id === pedidoId);
+  if (!p) return;
+  p.estado_entrega = 'entregado';
+  p.estado = 'entregado';
+  render();
+  await sb
+    .from('ordenes_troya')
+    .update({ estado_entrega: 'entregado', estado: 'entregado' })
+    .in('id', p.ids);
+}
+
+/* ── REALTIME ── */
+function startRealtime() {
+  sb.channel('repartidores-ch')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ordenes_troya' }, cargar)
+    .subscribe();
+}
+
+init();
+</script>
+</body>
+</html>

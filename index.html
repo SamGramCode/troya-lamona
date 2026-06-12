@@ -1694,13 +1694,16 @@ async function pollStatus() {
 
   const { data } = await sb
     .from('ordenes_troya')
-    .select('estado')
+    .select('estado, estado_entrega, domiciliario')
     .eq('pedido_id', pedidoId)
     .limit(1);
 
   if (!data || !data.length) return;
 
-  const estado = data[0].estado;
+  const row = data[0];
+  const estado = row.estado_entrega === 'entregado' ? 'entregado'
+    : row.estado_entrega === 'en_camino' ? 'listo'
+    : row.estado;
   const sec = document.getElementById('timelineSection');
   sec.style.display = 'block';
   document.getElementById('timelineContent').innerHTML = buildTimeline(estado);
