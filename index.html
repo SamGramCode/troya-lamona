@@ -246,25 +246,45 @@ input{font-family:inherit}
   box-shadow:0 8px 24px rgba(212,80,10,.4)}
 
 /* ── CONFIRM ─────────────────────────────────────────────────── */
-#confirmScreen{display:none;min-height:100vh;align-items:center;justify-content:center;
-  flex-direction:column;padding:2rem;text-align:center;background:var(--bg)}
-.conf-circle{width:96px;height:96px;border-radius:50%;background:var(--or);
-  display:flex;align-items:center;justify-content:center;font-size:2.6rem;
-  margin-bottom:1.4rem;box-shadow:0 12px 40px rgba(212,80,10,.4);
+/* ── Modal confirmación ── */
+#confirmScreen{display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(5px)}
+.modal-card{position:relative;background:#fff;border-radius:24px;padding:2rem 1.5rem 1.5rem;
+  max-width:420px;width:100%;max-height:90vh;overflow-y:auto;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);animation:slideUp .35s ease;z-index:1}
+.modal-close{position:absolute;top:1rem;right:1rem;background:#f0f0f0;border:none;
+  border-radius:50%;width:36px;height:36px;font-size:1rem;cursor:pointer;color:#666;
+  display:flex;align-items:center;justify-content:center;font-weight:700}
+.modal-close:hover{background:#e0e0e0}
+.conf-circle{width:80px;height:80px;border-radius:50%;background:var(--or);
+  display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+  margin:0 auto 1rem;box-shadow:0 10px 30px rgba(212,80,10,.4);
   animation:popIn .5s cubic-bezier(.17,.67,.24,1.4)}
 @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.conf-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900;
-  color:var(--dark);margin-bottom:.4rem}
-.conf-sub{color:var(--muted);font-size:.92rem;margin-bottom:1.8rem}
-.conf-detail{background:var(--white);border:1px solid var(--border);
-  border-radius:var(--radius);padding:1.1rem;width:100%;max-width:360px;
-  text-align:left;margin-bottom:1.4rem}
-.conf-item{display:flex;justify-content:space-between;padding:.38rem 0;
-  border-bottom:1px solid var(--border);font-size:.83rem}
+.conf-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;
+  color:var(--dark);margin-bottom:.3rem}
+.conf-sub{color:var(--muted);font-size:.88rem;margin-bottom:1.2rem}
+.conf-detail{background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1rem;width:100%;text-align:left;margin-bottom:1.2rem}
+.conf-item{display:flex;justify-content:space-between;padding:.35rem 0;
+  border-bottom:1px solid var(--border);font-size:.82rem}
 .conf-item:last-child{border-bottom:none}
-.btn-nuevo{background:var(--or);color:#fff;border-radius:999px;padding:.85rem 2.2rem;
-  font-weight:800;font-size:.97rem;box-shadow:0 6px 24px rgba(212,80,10,.35);transition:all .25s}
+.btn-nuevo{background:var(--or);color:#fff;border-radius:999px;padding:.8rem 2rem;
+  font-weight:800;font-size:.95rem;box-shadow:0 6px 20px rgba(212,80,10,.35);transition:all .25s;border:none;cursor:pointer}
 .btn-nuevo:hover{background:var(--orl);transform:translateY(-2px)}
+/* ── Timeline seguimiento ── */
+#timelineSection{background:linear-gradient(135deg,#fff8f5,#fff);border-bottom:1px solid rgba(232,100,26,.12);padding:1.4rem 1rem 1.6rem;display:none}
+.tl-title{text-align:center;font-size:.72rem;font-weight:800;color:var(--or);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem}
+.tl-row{display:flex;align-items:center;max-width:360px;margin:0 auto}
+.tl-step{display:flex;flex-direction:column;align-items:center;flex:0 0 auto}
+.tl-dot{width:42px;height:42px;border-radius:50%;background:#e8e8e8;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .4s}
+.tl-step.done .tl-dot,.tl-step.active .tl-dot{background:var(--or)}
+.tl-step.active .tl-dot{box-shadow:0 0 0 5px rgba(232,100,26,.2)}
+.tl-lbl{font-size:.6rem;font-weight:700;margin-top:5px;color:#ccc;text-align:center;line-height:1.2;width:56px;transition:color .4s}
+.tl-step.done .tl-lbl,.tl-step.active .tl-lbl{color:var(--or)}
+.tl-conn{flex:1;height:3px;background:#e8e8e8;margin-bottom:18px;min-width:8px;transition:background .4s}
+.tl-conn.done{background:var(--or)}
+.tl-fin{text-align:center;margin-top:.9rem;color:#27ae60;font-weight:700;font-size:.88rem;animation:popIn .5s ease}
 
 /* ── FADE IN UP ──────────────────────────────────────────────── */
 .fiu{opacity:0;transform:translateY(50px);
@@ -598,12 +618,23 @@ input{font-family:inherit}
 <!-- ══════════════════════════════════════════════════════
      CONFIRMACIÓN
 ══════════════════════════════════════════════════════ -->
+<!-- Timeline seguimiento -->
+<section id="timelineSection">
+  <div class="tl-title">Seguimiento de tu pedido</div>
+  <div id="timelineContent"></div>
+</section>
+
+<!-- Modal confirmación -->
 <div id="confirmScreen">
-  <div class="conf-circle">✓</div>
-  <h2 class="conf-title">¡Pedido recibido!</h2>
-  <p class="conf-sub" id="confSub"></p>
-  <div class="conf-detail" id="confDetail"></div>
-  <button type="button" class="btn-nuevo" onclick="resetPedido()">Hacer otro pedido</button>
+  <div class="modal-overlay" onclick="cerrarModal()"></div>
+  <div class="modal-card">
+    <button class="modal-close" onclick="cerrarModal()">✕</button>
+    <div class="conf-circle">✓</div>
+    <h2 class="conf-title">¡Pedido recibido!</h2>
+    <p class="conf-sub" id="confSub"></p>
+    <div class="conf-detail" id="confDetail"></div>
+    <button type="button" class="btn-nuevo" onclick="cerrarModal()">Entendido ✕</button>
+  </div>
 </div>
 
 <script>
@@ -1521,6 +1552,7 @@ async function enviar() {
   }
   try {
     const pedidoId = crypto.randomUUID();
+    window._activePedidoId = pedidoId;
     const rows = almuerzos.map(a => ({
       pedido_id:       pedidoId,
       proteina:        a.proteina?.name,
@@ -1547,9 +1579,12 @@ async function enviar() {
    CONFIRMACIÓN
 ══════════════════════════════════════════════════════════════ */
 function mostrarConfirm() {
-  document.getElementById('appScreen').style.visibility = 'hidden';
   const c = document.getElementById('confirmScreen');
   c.style.display = 'flex';
+  if (window._activePedidoId) {
+    localStorage.setItem('active_pedido_id', window._activePedidoId);
+    initTimeline();
+  }
   document.getElementById('confSub').textContent =
     shared.entrega === 'domicilio'
       ? 'Tu pedido está en preparación. Pronto lo recibirás en tu puerta. 🛵'
@@ -1585,7 +1620,6 @@ function resetPedido() {
   const cta = document.getElementById('showcaseCta');
   if (cta) { cta.disabled=true; cta.textContent='Selecciona al menos uno'; }
   document.getElementById('confirmScreen').style.display = 'none';
-  document.getElementById('appScreen').style.visibility = '';
   renderScreen();
   window.scrollTo({ top:0, behavior:'smooth' });
 }
@@ -1601,6 +1635,90 @@ document.addEventListener('visibilitychange', () => {
     resetPedido();
   }
 });
+
+/* ══════════════════════════════════════════════════════════════
+   CERRAR MODAL
+══════════════════════════════════════════════════════════════ */
+function cerrarModal() {
+  document.getElementById('confirmScreen').style.display = 'none';
+  resetPedido();
+  document.getElementById('menuShowcase')?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TIMELINE SEGUIMIENTO
+══════════════════════════════════════════════════════════════ */
+let _pollInterval = null;
+
+function buildTimeline(estado) {
+  const STEPS = [
+    { key:'pendiente',  label:'Recibido',  icon:'📦' },
+    { key:'preparando', label:'En Cocina', icon:'👨‍🍳' },
+    { key:'listo',      label:'En Camino', icon:'🚲' },
+    { key:'entregado',  label:'Entregado', icon:'✅' },
+  ];
+  const ORDER = ['pendiente','preparando','listo','entregado'];
+  const activeIdx = ORDER.indexOf(estado);
+  const pedidoId = localStorage.getItem('active_pedido_id') || '';
+  const code = pedidoId.slice(-6).toUpperCase();
+
+  let html = `<div class="tl-title">Pedido #${code}</div><div class="tl-row">`;
+  STEPS.forEach((s, i) => {
+    const done   = i < activeIdx;
+    const active = i === activeIdx;
+    const cls    = done ? 'done' : active ? 'active' : '';
+    html += `<div class="tl-step ${cls}">
+      <div class="tl-dot">${s.icon}</div>
+      <div class="tl-lbl">${s.label}</div>
+    </div>`;
+    if (i < STEPS.length - 1) {
+      html += `<div class="tl-conn ${done ? 'done' : ''}"></div>`;
+    }
+  });
+  html += `</div>`;
+  if (estado === 'entregado') {
+    html += `<div class="tl-fin">🎉 ¡Tu pedido fue entregado! Gracias por preferirnos.</div>`;
+  }
+  return html;
+}
+
+async function pollStatus() {
+  const pedidoId = localStorage.getItem('active_pedido_id');
+  if (!pedidoId) return;
+
+  const { data } = await sb
+    .from('ordenes_troya')
+    .select('estado')
+    .eq('pedido_id', pedidoId)
+    .limit(1);
+
+  if (!data || !data.length) return;
+
+  const estado = data[0].estado;
+  const sec = document.getElementById('timelineSection');
+  sec.style.display = 'block';
+  document.getElementById('timelineContent').innerHTML = buildTimeline(estado);
+
+  if (estado === 'entregado') {
+    clearInterval(_pollInterval);
+    setTimeout(() => {
+      localStorage.removeItem('active_pedido_id');
+      sec.style.display = 'none';
+    }, 10000);
+  }
+}
+
+function initTimeline() {
+  const pedidoId = localStorage.getItem('active_pedido_id');
+  if (!pedidoId) return;
+  const sec = document.getElementById('timelineSection');
+  sec.style.display = 'block';
+  pollStatus();
+  clearInterval(_pollInterval);
+  _pollInterval = setInterval(pollStatus, 10000);
+}
+
+initTimeline();
 </script>
 </body>
 </html>
