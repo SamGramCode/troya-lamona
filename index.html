@@ -1725,6 +1725,14 @@ function initTimeline() {
 }
 
 initTimeline();
+
+window.addEventListener('load', () => {
+  const pedidoId = localStorage.getItem('active_pedido_id');
+  const target = pedidoId
+    ? document.getElementById('timelineSection')
+    : document.getElementById('menuShowcase');
+  if (target) setTimeout(() => target.scrollIntoView({ behavior:'smooth', block:'start' }), 300);
+});
 </script>
 </body>
 </html>
