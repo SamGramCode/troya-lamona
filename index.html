@@ -267,14 +267,16 @@ input{font-family:inherit}
   font-weight:800;font-size:.95rem;box-shadow:0 6px 20px rgba(212,80,10,.35);transition:all .25s;border:none;cursor:pointer}
 .btn-nuevo:hover{background:var(--orl);transform:translateY(-2px)}
 /* ── Info card restaurante ── */
-#restoInfoCard{background:#fff;border-bottom:1px solid rgba(0,0,0,.07);padding:1.1rem 1.4rem .9rem;width:100%}
-.ric-stats{display:flex;justify-content:center;gap:2.5rem;margin-bottom:1rem}
+#restoInfoCard{background:#fff;border-bottom:1px solid rgba(0,0,0,.07);padding:1rem 1.2rem;width:100%}
+.ric-box{border:1px solid rgba(0,0,0,.09);border-radius:14px;padding:.9rem 1rem;
+  display:flex;flex-direction:column;gap:.85rem;max-width:420px;margin:0 auto}
+.ric-stats{display:flex;justify-content:space-around;gap:0}
 .ric-stat{display:flex;flex-direction:column;align-items:center;gap:.18rem}
 .ric-lbl{font-size:.72rem;color:#888;font-weight:600;display:flex;align-items:center;gap:.3rem}
 .ric-val{font-size:1.05rem;font-weight:900;color:#222}
 .ric-val.gratis{color:#27ae60}
 .ric-count{font-size:.78rem;font-weight:600;color:#999}
-.ric-toggle{display:flex;background:#f0f0f0;border-radius:999px;padding:3px;max-width:320px;margin:0 auto}
+.ric-toggle{display:flex;background:#f0f0f0;border-radius:999px;padding:3px}
 .ric-tog{flex:1;padding:.55rem .8rem;border-radius:999px;border:none;background:none;
   font-size:.88rem;font-weight:700;color:#888;cursor:pointer;transition:all .2s;font-family:inherit}
 .ric-tog.active{background:#fff;color:#222;box-shadow:0 1px 6px rgba(0,0,0,.13)}
@@ -632,19 +634,21 @@ input{font-family:inherit}
 
 <!-- Info restaurante -->
 <div id="restoInfoCard">
-  <div class="ric-stats">
-    <div class="ric-stat">
-      <span class="ric-lbl">🕐 Entrega</span>
-      <strong class="ric-val">25 min</strong>
+  <div class="ric-box">
+    <div class="ric-stats">
+      <div class="ric-stat">
+        <span class="ric-lbl">🕐 Entrega</span>
+        <strong class="ric-val" id="ric-tiempo">25 min</strong>
+      </div>
+      <div class="ric-stat">
+        <span class="ric-lbl">🚲 Envío</span>
+        <strong class="ric-val gratis">GRATIS</strong>
+      </div>
     </div>
-    <div class="ric-stat">
-      <span class="ric-lbl">🚲 Envío</span>
-      <strong class="ric-val gratis">GRATIS</strong>
+    <div class="ric-toggle">
+      <button class="ric-tog active" onclick="setRicMode('domicilio',this)">Domicilio</button>
+      <button class="ric-tog" onclick="setRicMode('tienda',this)">Recoger en tienda</button>
     </div>
-  </div>
-  <div class="ric-toggle">
-    <button class="ric-tog active" onclick="setRicMode('domicilio',this)">Domicilio</button>
-    <button class="ric-tog" onclick="setRicMode('tienda',this)">Recoger en tienda</button>
   </div>
 </div>
 
@@ -1530,7 +1534,7 @@ function selEnt(v) {
 function setRicMode(v, btn) {
   document.querySelectorAll('.ric-tog').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const tiempoEl = document.querySelector('.ric-val:not(.gratis)');
+  const tiempoEl = document.getElementById('ric-tiempo');
   if (tiempoEl) tiempoEl.textContent = v === 'tienda' ? '17 min' : '25 min';
   selEnt(v);
 }
