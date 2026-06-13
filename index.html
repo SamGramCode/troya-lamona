@@ -487,13 +487,29 @@ input{font-family:inherit}
     display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;
     padding:0 .8rem;border-right:none;gap:0;
     background:#fff;border-bottom:1px solid #e8e8e8;
-    box-shadow:0 2px 8px rgba(0,0,0,.06);scrollbar-width:none}
+    box-shadow:0 2px 8px rgba(0,0,0,.06);scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(to right,black 85%,transparent 100%);
+    mask-image:linear-gradient(to right,black 85%,transparent 100%)}
   .cat-sidebar::-webkit-scrollbar{display:none}
   .cat-item{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem .95rem;
     background:none;white-space:nowrap;font-size:.82rem;font-weight:700;
     color:#999;border-bottom:2.5px solid transparent;letter-spacing:.02em}
   .cat-item.active{color:#111;border-bottom-color:#111;background:none}
   .cat-section{scroll-margin-top:50px}
+  .cat-menu-btn{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem 1rem;
+    background:none;white-space:nowrap;font-size:.82rem;font-weight:800;
+    color:#111;border:none;border-bottom:2.5px solid transparent;cursor:pointer;
+    font-family:inherit;display:flex;align-items:center;gap:.3rem;letter-spacing:.02em}
+  #catDropdown{position:fixed;top:50px;left:0;right:0;z-index:199;
+    background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.15);
+    border-top:1px solid #eee;display:none;overflow-y:auto;max-height:60vh}
+  #catDropdown.open{display:block}
+  .cat-drop-item{display:block;width:100%;padding:1rem 1.4rem;font-size:.93rem;
+    font-weight:700;color:#333;border:none;border-bottom:1px solid #f4f4f4;
+    background:none;text-align:left;cursor:pointer;font-family:inherit}
+  .cat-drop-item:active{background:#fafafa}
+  #catDropOverlay{position:fixed;inset:0;z-index:198;display:none}
+  #catDropOverlay.open{display:block}
 }
 
 /* ── MASCOT ────────────────────────────────────────────────── */
@@ -1786,11 +1802,40 @@ function initTimeline() {
 function renderSidebar() {
   const nav = document.getElementById('catSidebar');
   if (!nav) return;
-  nav.innerHTML = CATEGORIAS
-    .filter(cat => PROTEINAS.some(p => p.cat === cat.id))
-    .map(cat => `<button class="cat-item" data-cat="${cat.id}" onclick="scrollToCat('${cat.id}')">${cat.label}</button>`)
-    .join('');
+  const cats = CATEGORIAS.filter(cat => PROTEINAS.some(p => p.cat === cat.id));
+  nav.innerHTML = `<button class="cat-menu-btn" onclick="toggleCatDropdown()">Menú <span id="catMenuArrow">▾</span></button>`
+    + cats.map(cat => `<button class="cat-item" data-cat="${cat.id}" onclick="scrollToCat('${cat.id}')">${cat.label}</button>`).join('');
+
+  // Crear dropdown si no existe
+  if (!document.getElementById('catDropdown')) {
+    const ov = document.createElement('div');
+    ov.id = 'catDropOverlay';
+    ov.onclick = closeCatDropdown;
+    document.body.appendChild(ov);
+    const dd = document.createElement('div');
+    dd.id = 'catDropdown';
+    dd.innerHTML = cats.map(cat =>
+      `<button class="cat-drop-item" onclick="scrollToCat('${cat.id}');closeCatDropdown()">${cat.icon||''} ${cat.label}</button>`
+    ).join('');
+    document.body.appendChild(dd);
+  }
   updateActiveCat();
+}
+
+function toggleCatDropdown() {
+  const dd = document.getElementById('catDropdown');
+  const ov = document.getElementById('catDropOverlay');
+  const arrow = document.getElementById('catMenuArrow');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open', !isOpen);
+  ov.classList.toggle('open', !isOpen);
+  if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
+}
+function closeCatDropdown() {
+  document.getElementById('catDropdown')?.classList.remove('open');
+  document.getElementById('catDropOverlay')?.classList.remove('open');
+  const arrow = document.getElementById('catMenuArrow');
+  if (arrow) arrow.textContent = '▾';
 }
 
 function scrollToCat(catId) {
