@@ -383,11 +383,44 @@ input{font-family:inherit}
 .accomp-item.sel .accomp-img,.accomp-item.on .accomp-img,.accomp-item.included .accomp-img{border-color:var(--or)}
 .accomp-name{font-size:.82rem;font-weight:800;color:var(--muted);transition:color .22s;flex:1}
 .accomp-item.sel .accomp-name,.accomp-item.on .accomp-name,.accomp-item.included .accomp-name{color:var(--dark)}
-.accomp-tog{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:.9rem;font-weight:900;flex-shrink:0;
-  border:2px solid #ddd;color:#ccc;background:#f8f8f8;transition:all .2s}
-.accomp-item.on .accomp-tog,.accomp-item.sel .accomp-tog,.accomp-item.included .accomp-tog{
-  border-color:#22c55e;color:#22c55e;background:#f0fdf4}
+.accomp-btns{display:flex;gap:5px;margin-left:auto;flex-shrink:0}
+.accomp-btn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.78rem;font-weight:900;border:2px solid;cursor:pointer;
+  background:none;font-family:inherit;transition:all .18s;padding:0}
+.accomp-btn-x{border-color:#fca5a5;color:#fca5a5}
+.accomp-btn-x.active{background:#ef4444;border-color:#ef4444;color:#fff}
+.accomp-btn-ok{border-color:#86efac;color:#86efac}
+.accomp-btn-ok.active{background:#22c55e;border-color:#22c55e;color:#fff}
+/* Protein modal */
+.prot-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;
+  display:flex;align-items:flex-end;animation:fadeIn .2s ease}
+.prot-modal-card{background:#fff;width:100%;max-height:82vh;border-radius:20px 20px 0 0;
+  overflow-y:auto;padding:1rem 1rem 2rem;animation:slideUp .28s ease}
+.prot-modal-hdr{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.8rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.prot-modal-hdr span{font-weight:900;font-size:1rem}
+.prot-modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;padding:.2rem .4rem}
+.btn-elige-prot{width:100%;padding:.75rem 1rem;border:2px dashed var(--or);border-radius:12px;
+  background:rgba(232,100,26,.05);color:var(--or);font-weight:800;font-size:.88rem;
+  cursor:pointer;font-family:inherit;text-align:center;transition:all .2s}
+.btn-elige-prot:active{background:rgba(232,100,26,.12)}
+/* Pedido modal */
+.ped-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;
+  display:flex;align-items:flex-end;animation:fadeIn .2s ease}
+.ped-modal-card{background:#fff;width:100%;max-height:80vh;border-radius:20px 20px 0 0;
+  overflow-y:auto;padding:1rem 1rem 2.5rem;animation:slideUp .28s ease}
+.ped-modal-hdr{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.8rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.ped-modal-hdr span{font-weight:900;font-size:1rem}
+.ped-item{background:var(--bg);border-radius:12px;padding:.8rem 1rem;margin-bottom:.6rem}
+.ped-item-title{font-weight:900;font-size:.85rem;color:var(--or);margin-bottom:.35rem}
+.ped-item-row{font-size:.8rem;color:var(--dark);padding:.15rem 0}
+.ped-item-empty{color:#aaa;font-size:.8rem;font-style:italic}
+/* Ver pedido fab */
+#fabVerPedido{position:fixed;bottom:72px;right:1rem;z-index:200;
+  background:var(--or);color:#fff;border:none;border-radius:999px;
+  padding:.6rem 1rem;font-weight:800;font-size:.82rem;font-family:inherit;
+  cursor:pointer;box-shadow:0 4px 14px rgba(232,100,26,.4);display:none}
 
 /* ── BUILD PHASE ─────────────────────────────────────────────── */
 .build-screen{display:flex;flex-direction:column;padding:0 0 7rem}
@@ -584,6 +617,29 @@ input{font-family:inherit}
 
 
 <!-- MASCOT — personaje animado esquina -->
+<!-- Protein modal -->
+<div id="protModal" style="display:none" onclick="closeProtModal()">
+  <div class="prot-modal-card" onclick="event.stopPropagation()">
+    <div class="prot-modal-hdr">
+      <span>Elige tu proteína</span>
+      <button class="prot-modal-close" onclick="closeProtModal()">✕</button>
+    </div>
+    <div id="protModalBody"></div>
+  </div>
+</div>
+<!-- Pedido modal -->
+<div id="pedidoModal" style="display:none" onclick="closePedidoModal()">
+  <div class="ped-modal-card" onclick="event.stopPropagation()">
+    <div class="ped-modal-hdr">
+      <span>📋 Tu pedido</span>
+      <button class="prot-modal-close" onclick="closePedidoModal()">✕</button>
+    </div>
+    <div id="pedidoModalBody"></div>
+  </div>
+</div>
+<!-- FAB ver pedido -->
+<button id="fabVerPedido" onclick="openPedidoModal()">📋 Ver pedido</button>
+
 <div class="mascot-wrap" id="mascotWrap">
   <svg viewBox="0 0 80 108" xmlns="http://www.w3.org/2000/svg">
     <!-- Sombrero llanero -->
@@ -1216,20 +1272,23 @@ function acompSectionHTML(i) {
 
   if (SIN_NADA.includes(cat)) return '';
 
-  const tog = (on) => `<span class="accomp-tog">${on ? '✓' : '✗'}</span>`;
+  const btns = (on, fnYes, fnNo) => `<span class="accomp-btns" onclick="event.stopPropagation()">
+    <button class="accomp-btn accomp-btn-x ${!on?'active':''}" onclick="${fnNo}">✗</button>
+    <button class="accomp-btn accomp-btn-ok ${on?'active':''}" onclick="${fnYes}">✓</button>
+  </span>`;
 
   if (SOLO_PAPAS_JUGO.includes(cat)) {
     return `
     <div class="accomp-section">
       <div class="accomp-lbl">Adicionales</div>
       <div class="accomp-grid">
-        <div class="accomp-item ${a.papas?'on':''}" onclick="togAlm(${i},'papas')">
+        <div class="accomp-item ${a.papas?'on':''}">
           <div class="accomp-img"><img src="acompañantes/papas francesas.png" alt="Papas" loading="lazy"></div>
-          <span class="accomp-name">Papas</span>${tog(a.papas)}
+          <span class="accomp-name">Papas</span>${btns(a.papas,`setAlm(${i},'papas',true)`,`setAlm(${i},'papas',false)`)}
         </div>
-        <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
+        <div class="accomp-item ${a.jugo?'on':''}">
           <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
-          <span class="accomp-name">Jugo</span>${tog(a.jugo)}
+          <span class="accomp-name">Jugo</span>${btns(a.jugo,`setAlm(${i},'jugo',true)`,`setAlm(${i},'jugo',false)`)}
         </div>
       </div>
     </div>`;
@@ -1239,43 +1298,43 @@ function acompSectionHTML(i) {
     <div class="accomp-section">
       <div class="accomp-lbl">Acompañamientos</div>
       <div class="accomp-grid">
-        <div class="accomp-item ${a.arroz?'on':''}" onclick="togAlm(${i},'arroz')">
+        <div class="accomp-item ${a.arroz?'on':''}">
           <div class="accomp-img"><img src="acompañantes/porcion  de arroz blanco.png" alt="Arroz" loading="lazy"></div>
-          <span class="accomp-name">Arroz</span>${tog(a.arroz)}
+          <span class="accomp-name">Arroz</span>${btns(a.arroz,`setAlm(${i},'arroz',true)`,`setAlm(${i},'arroz',false)`)}
         </div>
-        <div class="accomp-item ${a.sopa?'on':''}" onclick="togAlm(${i},'sopa')">
+        <div class="accomp-item ${a.sopa?'on':''}">
           <div class="accomp-img"><img src="sopa sola.png" alt="Sopa" loading="lazy"></div>
-          <span class="accomp-name">Sopa</span>${tog(a.sopa)}
+          <span class="accomp-name">Sopa</span>${btns(a.sopa,`setAlm(${i},'sopa',true)`,`setAlm(${i},'sopa',false)`)}
         </div>
-        <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
+        <div class="accomp-item ${a.jugo?'on':''}">
           <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
-          <span class="accomp-name">Jugo</span>${tog(a.jugo)}
+          <span class="accomp-name">Jugo</span>${btns(a.jugo,`setAlm(${i},'jugo',true)`,`setAlm(${i},'jugo',false)`)}
         </div>
       </div>
     </div>
     <div class="accomp-section">
       <div class="accomp-lbl">Principio</div>
       <div class="accomp-grid">
-        <div class="accomp-item ${a.principio==='lentejas'?'sel':''}" onclick="selA(${i},'principio','lentejas')">
+        <div class="accomp-item ${a.principio==='lentejas'?'sel':''}">
           <div class="accomp-img"><img src="acompañantes/porcion de lentejas.png" alt="Lentejas" loading="lazy"></div>
-          <span class="accomp-name">Lentejas</span>${tog(a.principio==='lentejas')}
+          <span class="accomp-name">Lentejas</span>${btns(a.principio==='lentejas',`selA(${i},'principio','lentejas')`,`clearA(${i},'principio')`)}
         </div>
-        <div class="accomp-item ${a.principio==='pure'?'sel':''}" onclick="selA(${i},'principio','pure')">
+        <div class="accomp-item ${a.principio==='pure'?'sel':''}">
           <div class="accomp-img"><img src="acompañantes/porcion de pure de papas.png" alt="Puré" loading="lazy"></div>
-          <span class="accomp-name">Puré de Papa</span>${tog(a.principio==='pure')}
+          <span class="accomp-name">Puré de Papa</span>${btns(a.principio==='pure',`selA(${i},'principio','pure')`,`clearA(${i},'principio')`)}
         </div>
       </div>
     </div>
     <div class="accomp-section">
       <div class="accomp-lbl">Ensalada</div>
       <div class="accomp-grid">
-        <div class="accomp-item ${a.ensalada==='rayada'?'sel':''}" onclick="selA(${i},'ensalada','rayada')">
+        <div class="accomp-item ${a.ensalada==='rayada'?'sel':''}">
           <div class="accomp-img"><img src="ensaladas/ensalada rayada.png" alt="Rayada" loading="lazy"></div>
-          <span class="accomp-name">Rayada</span>${tog(a.ensalada==='rayada')}
+          <span class="accomp-name">Rayada</span>${btns(a.ensalada==='rayada',`selA(${i},'ensalada','rayada')`,`clearA(${i},'ensalada')`)}
         </div>
-        <div class="accomp-item ${a.ensalada==='cocida'?'sel':''}" onclick="selA(${i},'ensalada','cocida')">
+        <div class="accomp-item ${a.ensalada==='cocida'?'sel':''}">
           <div class="accomp-img"><img src="ensaladas/ensalada cocida.png" alt="Cocida" loading="lazy"></div>
-          <span class="accomp-name">Cocida</span>${tog(a.ensalada==='cocida')}
+          <span class="accomp-name">Cocida</span>${btns(a.ensalada==='cocida',`selA(${i},'ensalada','cocida')`,`clearA(${i},'ensalada')`)}
         </div>
       </div>
     </div>`;
@@ -1373,13 +1432,11 @@ function renderScreen() {
               <div class="alm-plate-wrap" id="alm-plate-wrap-${i}">${plateSVG(i)}</div>
               <span class="alm-prot-name" id="alm-hdr-prot-${i}">${a.proteina?.name||'Elige proteína…'}</span>
             </div>
-            ${!a.proteina ? `<div class="alm-section">
-              <div class="cat-tabs">${CATEGORIAS.map(c=>
-                `<button type="button" class="cat-tab ${a.catActiva===c.id?'active':''}"
-                  onclick="setcat(${i},'${c.id}')">${c.label}</button>`
-              ).join('')}</div>
-              <div class="opts" id="opts-${i}">${protCardsHTML(i)}</div>
-            </div>` : ''}
+            <div class="alm-section">
+              <button class="btn-elige-prot" onclick="openProtModal(${i})">
+                ${a.proteina ? `✏️ Cambiar: ${a.proteina.name}` : '🍖 Elige tu proteína'}
+              </button>
+            </div>
             <div id="alm-accomp-${i}">${acompSectionHTML(i)}</div>
           </div>`).join('')}
       </div>
@@ -1493,14 +1550,17 @@ function selProt(i, id) {
   if (SIN_CONTORNO.includes(a.proteina.cat)) { a.principio = null; a.ensalada = null; }
   applyProteinaDefaults(i);
   updatePlate(i);
-  const optsEl = document.getElementById(`opts-${i}`);
-  if (optsEl) optsEl.innerHTML = protCardsHTML(i);
   const hdr = document.getElementById(`alm-hdr-prot-${i}`);
   if (hdr) hdr.textContent = a.proteina.name;
   const accompEl = document.getElementById(`alm-accomp-${i}`);
   if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+  // Update "Elige proteína" button text
+  const protBtn = document.querySelector(`#ablock-${i} .btn-elige-prot`);
+  if (protBtn) protBtn.innerHTML = `✏️ Cambiar: ${a.proteina.name}`;
   document.getElementById('totalBadge').textContent = fmt(calcTotal());
   spinPlate(i);
+  closeProtModal();
+  document.getElementById('fabVerPedido').style.display = 'block';
   checkAutoAdvance();
 }
 function selA(i, campo, val) {
@@ -1514,6 +1574,64 @@ function togAlm(i, campo) {
   almuerzos[i][campo] = !almuerzos[i][campo];
   const accompEl = document.getElementById(`alm-accomp-${i}`);
   if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+}
+function setAlm(i, campo, val) {
+  almuerzos[i][campo] = val;
+  const accompEl = document.getElementById(`alm-accomp-${i}`);
+  if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+}
+function clearA(i, campo) {
+  almuerzos[i][campo] = null;
+  updatePlate(i);
+  const accompEl = document.getElementById(`alm-accomp-${i}`);
+  if (accompEl) accompEl.innerHTML = acompSectionHTML(i);
+  checkAutoAdvance();
+}
+let _protIdx = 0;
+function openProtModal(i) {
+  _protIdx = i;
+  const a = almuerzos[i];
+  document.getElementById('protModalBody').innerHTML =
+    `<div class="cat-tabs" style="margin-bottom:.7rem">${CATEGORIAS.map(c=>
+      `<button type="button" class="cat-tab ${a.catActiva===c.id?'active':''}"
+        onclick="setcatModal(${_protIdx},'${c.id}')">${c.label}</button>`
+    ).join('')}</div>
+    <div id="opts-modal">${protCardsHTML(i)}</div>`;
+  const el = document.getElementById('protModal');
+  el.className = 'prot-modal-ov';
+  el.style.display = 'flex';
+}
+function closeProtModal() {
+  document.getElementById('protModal').style.display = 'none';
+}
+function setcatModal(i, cat) {
+  almuerzos[i].catActiva = cat;
+  const el = document.getElementById('opts-modal');
+  if (el) el.innerHTML = protCardsHTML(i);
+  document.querySelectorAll('#protModalBody .cat-tab').forEach(b =>
+    b.classList.toggle('active', b.textContent.trim() === (CATEGORIAS.find(c=>c.id===cat)?.label||'')));
+}
+function openPedidoModal() {
+  let html = '';
+  almuerzos.forEach((a, i) => {
+    const extras = [a.arroz&&'Arroz', a.sopa&&'Sopa', a.jugo&&'Jugo', a.papas&&'Papas'].filter(Boolean);
+    html += `<div class="ped-item">
+      <div class="ped-item-title">Almuerzo ${i+1}</div>
+      ${a.proteina
+        ? `<div class="ped-item-row">🍖 ${a.proteina.name}</div>
+           ${a.principio?`<div class="ped-item-row">🫘 ${a.principio==='lentejas'?'Lentejas':'Puré de Papa'}</div>`:''}
+           ${a.ensalada?`<div class="ped-item-row">🥗 ${a.ensalada==='rayada'?'Ens. Rayada':'Ens. Cocida'}</div>`:''}
+           ${extras.length?`<div class="ped-item-row">➕ ${extras.join(', ')}</div>`:''}`
+        : `<div class="ped-item-empty">Sin proteína aún</div>`}
+    </div>`;
+  });
+  document.getElementById('pedidoModalBody').innerHTML = html;
+  const el = document.getElementById('pedidoModal');
+  el.className = 'ped-modal-ov';
+  el.style.display = 'flex';
+}
+function closePedidoModal() {
+  document.getElementById('pedidoModal').style.display = 'none';
 }
 function selEnt(v) {
   shared.entrega = v;
