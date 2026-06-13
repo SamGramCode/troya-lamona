@@ -108,9 +108,12 @@
   <!-- Panel entregas -->
   <div id="entregasOv" onclick="cerrarEntregas()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)"></div>
   <div id="entregasPanel" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:201;background:#fff;border-radius:20px 20px 0 0;padding:1.4rem 1rem 2rem;max-height:80vh;overflow-y:auto;box-shadow:0 -8px 30px rgba(0,0,0,.2)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
-      <strong style="font-size:1rem;color:#1a1207">📋 Mis entregas de hoy</strong>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <strong style="font-size:1rem;color:#1a1207">📋 Mis entregas</strong>
       <button onclick="cerrarEntregas()" style="background:#f0f0f0;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer">✕</button>
+    </div>
+    <div style="margin-bottom:1rem">
+      <input type="date" id="entregasFecha" style="width:100%;padding:.6rem .9rem;border:2px solid #eee;border-radius:10px;font-size:.95rem;font-family:inherit;color:#1a1207;outline:none;box-sizing:border-box" oninput="cargarEntregas()">
     </div>
     <div id="entregasBody"></div>
   </div>
@@ -308,21 +311,34 @@ function startRealtime() {
 /* ── ENTREGAS DEL DIA ── */
 function fmt(n){ return '$' + (n||0).toLocaleString('es-CO'); }
 
-async function verEntregas() {
+function verEntregas() {
   document.getElementById('entregasOv').style.display = 'block';
   document.getElementById('entregasPanel').style.display = 'block';
+  // Pone fecha de hoy (día de negocio: si es antes de las 6am, usa el día anterior)
+  const ref = new Date();
+  if (ref.getHours() < 6) ref.setDate(ref.getDate() - 1);
+  const yyyy = ref.getFullYear();
+  const mm = String(ref.getMonth() + 1).padStart(2, '0');
+  const dd = String(ref.getDate()).padStart(2, '0');
+  document.getElementById('entregasFecha').value = `${yyyy}-${mm}-${dd}`;
+  cargarEntregas();
+}
+
+async function cargarEntregas() {
   document.getElementById('entregasBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa">Cargando...</div>';
 
-  const hoy = new Date();
-  if (hoy.getHours() < 6) hoy.setDate(hoy.getDate() - 1);
-  hoy.setHours(6, 0, 0, 0);
+  const fechaVal = document.getElementById('entregasFecha').value;
+  if (!fechaVal) return;
+  const start = new Date(fechaVal + 'T06:00:00');
+  const end   = new Date(start.getTime() + 24 * 60 * 60 * 1000);
 
   const { data } = await sb
     .from('ordenes_troya')
     .select('*')
     .eq('domiciliario', driverName)
     .eq('estado_entrega', 'entregado')
-    .gte('created_at', hoy.toISOString())
+    .gte('created_at', start.toISOString())
+    .lt('created_at', end.toISOString())
     .order('created_at', { ascending: false });
 
   const grps = groupRows(data || []);
