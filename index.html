@@ -31,10 +31,17 @@ input{font-family:inherit}
   border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── FLAG CORNER TRIANGLE ─────────────────────────────────── */
-.flag-corner{position:fixed;top:0;right:0;width:180px;height:180px;
-  overflow:hidden;z-index:9999;pointer-events:none}
-.flag-corner svg{position:absolute;top:0;right:0;width:100%;height:100%}
+/* ── SVG DEFS (oculto) ────────────────────────────────────── */
+.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ── FLAG CARD OVERLAY ────────────────────────────────────── */
+.flag-card-ov{position:absolute;inset:0;pointer-events:none;z-index:2;
+  transform:rotate(-15deg) scale(1.5);transform-origin:center;overflow:visible}
+.fco-stripe{position:absolute;width:100%;height:33.4%;filter:url(#spray-paint);opacity:.18}
+.fco-stripe.y{top:0;background:var(--flag-y)}
+.fco-stripe.b{top:33.3%;background:var(--flag-b)}
+.fco-stripe.r{top:66.6%;background:var(--flag-r)}
+.fco-stars{position:absolute;top:33.3%;left:0;width:100%;height:33.4%;overflow:visible;opacity:.55}
 
 /* ── HERO ────────────────────────────────────────────────────── */
 #heroScreen{
@@ -537,25 +544,6 @@ input{font-family:inherit}
   <img src="nuevo_logo_sin_fondo-removebg-preview.png" alt="Troya El Sazón de La Mona" class="hero-logo-center">
 </div>
 
-<!-- Triángulo bandera Venezuela esquina superior derecha -->
-<div class="flag-corner">
-  <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-    <!-- Triángulo amarillo (fondo) -->
-    <polygon points="0,0 180,0 180,180" fill="#FFD100"/>
-    <!-- Triángulo azul -->
-    <polygon points="60,0 180,0 180,120" fill="#002FA7"/>
-    <!-- Triángulo rojo -->
-    <polygon points="110,0 180,0 180,70" fill="#CF0821"/>
-    <!-- Estrellas en arco sobre el azul -->
-    <g fill="white" opacity="0.9">
-      <polygon transform="translate(135,68) rotate(0)"  points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
-      <polygon transform="translate(148,55) rotate(15)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
-      <polygon transform="translate(158,40) rotate(30)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
-      <polygon transform="translate(165,23) rotate(45)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
-      <polygon transform="translate(168,6)  rotate(60)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
-    </g>
-  </svg>
-</div>
 
 <!-- MASCOT — personaje animado esquina -->
 <div class="mascot-wrap" id="mascotWrap">
@@ -1270,8 +1258,23 @@ function renderShowcase() {
       const dur = DURS[idx % DURS.length];
       const del = DELS[idx % DELS.length];
       html += `<div class="dish-card">
-        <div class="dish-img-wrap">
+        <div class="dish-img-wrap" style="position:relative">
           <img src="${p.img}" alt="${p.name}" loading="lazy">
+          <div class="flag-card-ov">
+            <div class="fco-stripe y"></div>
+            <div class="fco-stripe b"></div>
+            <div class="fco-stripe r"></div>
+            <svg class="fco-stars" viewBox="0 0 100 33" xmlns="http://www.w3.org/2000/svg">
+              <polygon transform="translate(10,19)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(22,11)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(33,7)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(44,5)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(56,5)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(67,7)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(78,11)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+              <polygon transform="translate(90,19)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
+            </svg>
+          </div>
         </div>
         <div class="dish-title">${p.name}</div>
         <div class="dish-price">${fmt(p.precio)}</div>
