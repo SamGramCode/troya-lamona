@@ -605,13 +605,10 @@ let agotados = [];       // unavailable items
 let deliveredOpen = false;
 
 async function loadOrders() {
-  const today = new Date();
-  today.setHours(0,0,0,0);
   const { data, error } = await sb
     .from('ordenes_troya')
     .select('*')
-    .gte('created_at', today.toISOString())
-    .neq('estado','cancelado')
+    .not('estado', 'in', '("cancelado","entregado")')
     .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   pedidos = groupRows(data || []);
