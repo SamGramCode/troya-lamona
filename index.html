@@ -806,7 +806,7 @@ function applyProteinaDefaults(i) {
   }
 }
 
-let shared = { cantidad:1, entrega:null, pago:null, direccion:'', telefono:'', nombre:'',
+let shared = { cantidad:1, entrega:'domicilio', pago:null, direccion:'', telefono:'', nombre:'',
                comprobanteFile:null, comprobantePreviewUrl:null };
 let almuerzos = [];
 let step = 0;          // 0:cantidad 1:building 2:entrega 3:pago
@@ -1379,34 +1379,32 @@ function renderScreen() {
   } else if (step === 2) {
     h = `<div class="step-sec" style="padding-bottom:7rem">
       ${platesRowHTML()}
-      <h2 class="step-h" style="padding-top:.8rem">¿Cómo lo recibes?</h2>
-      <p class="step-sub">Domicilio sin costo adicional 🛵</p>
-      <div class="opts">
-        <div class="ocard ${shared.entrega==='tienda'?'sel':''}" onclick="selEnt('tienda')">
-          <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#3498DB,#1A5C8A)">🏪</div>
-          <div style="flex:1"><div class="oname">Recoger en Tienda</div><div class="odesc">Pasa a buscar tu pedido</div></div>
-          <div class="ocheck"></div>
-        </div>
-        <div class="ocard ${shared.entrega==='domicilio'?'sel':''}" onclick="selEnt('domicilio')">
-          <div class="oicon" style="background:radial-gradient(circle at 40% 35%,#E8641A,#C04010)">🛵</div>
-          <div style="flex:1"><div class="oname">Domicilio</div><div class="odesc">Sin costo adicional</div></div>
-          <div class="ocheck"></div>
-        </div>
-      </div>
       ${shared.entrega==='domicilio'?`
-      <div style="margin-top:1.4rem">
+      <h2 class="step-h" style="padding-top:.8rem">¿A dónde te lo enviamos? 🚲</h2>
+      <p class="step-sub">Envío gratis</p>
+      <div style="margin-top:1rem">
+        <div class="inp-grp">
+          <label class="inp-lbl">Nombre de quien recibe</label>
+          <input class="inp" type="text" placeholder="Nombre completo" value="${shared.nombre}"
+            oninput="shared.nombre=this.value;updateConfirmBtn()">
+        </div>
         <div class="inp-grp">
           <label class="inp-lbl">Dirección</label>
           <input class="inp" type="text" placeholder="Ej: Calle 10 # 5-20, Barrio..." value="${shared.direccion}"
-            oninput="shared.direccion=this.value">
+            oninput="shared.direccion=this.value;updateConfirmBtn()">
         </div>
         <div class="inp-grp">
           <label class="inp-lbl">Teléfono</label>
           <input class="inp" type="tel" placeholder="Ej: 300 123 4567" value="${shared.telefono}"
-            oninput="shared.telefono=this.value">
+            oninput="shared.telefono=this.value;updateConfirmBtn()">
         </div>
         <button class="btn-listo" onclick="confirmarDomicilio()">Confirmar dirección →</button>
-      </div>`:''}
+      </div>`:`
+      <h2 class="step-h" style="padding-top:.8rem">Recoger en tienda 🏪</h2>
+      <p class="step-sub">Tu pedido estará listo para recoger</p>
+      <div style="background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:14px;padding:1rem 1.2rem;margin-top:1rem;text-align:center;color:#2980b9;font-weight:700">
+        Pasas a buscar tu pedido cuando esté listo 👍
+      </div>`}
     </div>`;
 
   } else if (step === 3) {
