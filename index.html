@@ -486,14 +486,12 @@ input{font-family:inherit}
 .cat-section{scroll-margin-top:8px}
 @media(max-width:640px){
   .showcase-layout{flex-direction:column}
-  #catWrap{position:sticky;top:0;z-index:50;width:100%}
+  #catWrap{position:sticky;top:0;z-index:250;width:100%}
   .cat-sidebar{width:100%;height:auto;position:relative;
     display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;
     padding:0 .8rem;border-right:none;gap:0;
     background:#fff;border-bottom:1px solid #e8e8e8;
-    box-shadow:0 2px 8px rgba(0,0,0,.06);scrollbar-width:none;
-    -webkit-mask-image:linear-gradient(to right,black 85%,transparent 100%);
-    mask-image:linear-gradient(to right,black 85%,transparent 100%)}
+    box-shadow:0 2px 8px rgba(0,0,0,.06);scrollbar-width:none}
   .cat-sidebar::-webkit-scrollbar{display:none}
   .cat-item{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem 0;
     background:none;white-space:nowrap;font-size:.8rem;font-weight:700;
@@ -503,10 +501,12 @@ input{font-family:inherit}
   .cat-menu-btn{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem 1rem;
     background:none;white-space:nowrap;font-size:.82rem;font-weight:800;
     color:#111;border:none;border-bottom:2.5px solid transparent;cursor:pointer;
-    font-family:inherit;display:flex;align-items:center;gap:.3rem;letter-spacing:.02em}
+    font-family:inherit;display:flex;align-items:center;gap:.3rem;letter-spacing:.02em;
+    margin-left:auto}
   #catDropdown{position:absolute;top:100%;left:0;right:0;z-index:199;
     background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.15);
     border-top:1px solid #eee;overflow-y:auto;max-height:60vh;
+    padding-bottom:1.5rem;
     transform:translateY(-100%);opacity:0;pointer-events:none;
     transition:transform .28s ease,opacity .22s ease}
   #catDropdown.open{transform:translateY(0);opacity:1;pointer-events:auto}
