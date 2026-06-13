@@ -491,7 +491,7 @@ input{font-family:inherit}
     -webkit-mask-image:linear-gradient(to right,black 85%,transparent 100%);
     mask-image:linear-gradient(to right,black 85%,transparent 100%)}
   .cat-sidebar::-webkit-scrollbar{display:none}
-  .cat-item{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem .95rem;
+  .cat-item{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem .6rem;
     background:none;white-space:nowrap;font-size:.82rem;font-weight:700;
     color:#999;border-bottom:2.5px solid transparent;letter-spacing:.02em}
   .cat-item.active{color:#111;border-bottom-color:#111;background:none}
@@ -1826,6 +1826,9 @@ function toggleCatDropdown() {
   const dd = document.getElementById('catDropdown');
   const ov = document.getElementById('catDropOverlay');
   const arrow = document.getElementById('catMenuArrow');
+  const sidebar = document.getElementById('catSidebar');
+  // Posicionar siempre justo debajo de la barra
+  dd.style.top = sidebar.getBoundingClientRect().bottom + 'px';
   const isOpen = dd.classList.contains('open');
   dd.classList.toggle('open', !isOpen);
   ov.classList.toggle('open', !isOpen);
