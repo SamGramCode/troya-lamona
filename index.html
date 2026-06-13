@@ -1831,12 +1831,12 @@ function toggleCatDropdown() {
   const ov = document.getElementById('catDropOverlay');
   const arrow = document.getElementById('catMenuArrow');
   const sidebar = document.getElementById('catSidebar');
-  // Posicionar siempre justo debajo de la barra
   dd.style.top = sidebar.getBoundingClientRect().bottom + 'px';
   const isOpen = dd.classList.contains('open');
   dd.classList.toggle('open', !isOpen);
   ov.classList.toggle('open', !isOpen);
   if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
+  if (!isOpen) _ddOpenY = window.scrollY;
 }
 function closeCatDropdown() {
   document.getElementById('catDropdown')?.classList.remove('open');
@@ -1865,12 +1865,10 @@ function updateActiveCat() {
 }
 
 window.addEventListener('scroll', updateActiveCat, { passive:true });
+let _ddOpenY = 0;
 window.addEventListener('scroll', () => {
   const dd = document.getElementById('catDropdown');
-  if (dd?.classList.contains('open')) {
-    const sidebar = document.getElementById('catSidebar');
-    if (sidebar) dd.style.top = sidebar.getBoundingClientRect().bottom + 'px';
-  }
+  if (dd?.classList.contains('open') && Math.abs(window.scrollY - _ddOpenY) > 60) closeCatDropdown();
 }, { passive:true });
 
 initTimeline();
