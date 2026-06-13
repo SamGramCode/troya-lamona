@@ -373,17 +373,21 @@ input{font-family:inherit}
 /* ── ACOMPAÑAMIENTOS ─────────────────────────────────────────── */
 .accomp-section{padding:.6rem .8rem;border-top:1px solid var(--border)}
 .accomp-lbl{font-size:.58rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--or);margin-bottom:.55rem}
-.accomp-grid{display:flex;flex-wrap:wrap;gap:.65rem}
-.accomp-item{display:flex;flex-direction:column;align-items:center;gap:.22rem;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.accomp-grid{display:flex;flex-direction:column;gap:.35rem}
+.accomp-item{display:flex;flex-direction:row;align-items:center;gap:.6rem;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;padding:.2rem 0}
 .accomp-item.included{cursor:default;opacity:.75}
-.accomp-img{width:62px;height:62px;border-radius:12px;overflow:hidden;
-  border:2.5px solid var(--border);transition:border-color .22s,box-shadow .22s;flex-shrink:0}
+.accomp-img{width:48px;height:48px;border-radius:10px;overflow:hidden;
+  border:2px solid var(--border);transition:border-color .22s;flex-shrink:0}
 .accomp-img img{width:100%;height:100%;object-fit:cover;display:block}
-.accomp-item.sel .accomp-img,.accomp-item.on .accomp-img,.accomp-item.included .accomp-img{
-  border-color:var(--or);box-shadow:0 0 0 3px rgba(212,80,10,.18)}
-.accomp-name{font-size:.57rem;font-weight:800;text-align:center;color:var(--muted);
-  max-width:66px;line-height:1.2;transition:color .22s}
-.accomp-item.sel .accomp-name,.accomp-item.on .accomp-name,.accomp-item.included .accomp-name{color:var(--or)}
+.accomp-item.sel .accomp-img,.accomp-item.on .accomp-img,.accomp-item.included .accomp-img{border-color:var(--or)}
+.accomp-name{font-size:.82rem;font-weight:800;color:var(--muted);transition:color .22s;flex:1}
+.accomp-item.sel .accomp-name,.accomp-item.on .accomp-name,.accomp-item.included .accomp-name{color:var(--dark)}
+.accomp-tog{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;font-weight:900;flex-shrink:0;
+  border:2px solid #ddd;color:#ccc;background:#f8f8f8;transition:all .2s}
+.accomp-item.on .accomp-tog,.accomp-item.sel .accomp-tog,.accomp-item.included .accomp-tog{
+  border-color:#22c55e;color:#22c55e;background:#f0fdf4}
 
 /* ── BUILD PHASE ─────────────────────────────────────────────── */
 .build-screen{display:flex;flex-direction:column;padding:0 0 7rem}
@@ -1212,6 +1216,8 @@ function acompSectionHTML(i) {
 
   if (SIN_NADA.includes(cat)) return '';
 
+  const tog = (on) => `<span class="accomp-tog">${on ? '✓' : '✗'}</span>`;
+
   if (SOLO_PAPAS_JUGO.includes(cat)) {
     return `
     <div class="accomp-section">
@@ -1219,11 +1225,11 @@ function acompSectionHTML(i) {
       <div class="accomp-grid">
         <div class="accomp-item ${a.papas?'on':''}" onclick="togAlm(${i},'papas')">
           <div class="accomp-img"><img src="acompañantes/papas francesas.png" alt="Papas" loading="lazy"></div>
-          <span class="accomp-name">Papas</span>
+          <span class="accomp-name">Papas</span>${tog(a.papas)}
         </div>
         <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
           <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
-          <span class="accomp-name">Jugo</span>
+          <span class="accomp-name">Jugo</span>${tog(a.jugo)}
         </div>
       </div>
     </div>`;
@@ -1235,15 +1241,15 @@ function acompSectionHTML(i) {
       <div class="accomp-grid">
         <div class="accomp-item ${a.arroz?'on':''}" onclick="togAlm(${i},'arroz')">
           <div class="accomp-img"><img src="acompañantes/porcion  de arroz blanco.png" alt="Arroz" loading="lazy"></div>
-          <span class="accomp-name">Arroz</span>
+          <span class="accomp-name">Arroz</span>${tog(a.arroz)}
         </div>
         <div class="accomp-item ${a.sopa?'on':''}" onclick="togAlm(${i},'sopa')">
           <div class="accomp-img"><img src="sopa sola.png" alt="Sopa" loading="lazy"></div>
-          <span class="accomp-name">Sopa</span>
+          <span class="accomp-name">Sopa</span>${tog(a.sopa)}
         </div>
         <div class="accomp-item ${a.jugo?'on':''}" onclick="togAlm(${i},'jugo')">
           <div class="accomp-img"><img src="jugo de la casa.png" alt="Jugo" loading="lazy"></div>
-          <span class="accomp-name">Jugo</span>
+          <span class="accomp-name">Jugo</span>${tog(a.jugo)}
         </div>
       </div>
     </div>
@@ -1252,11 +1258,11 @@ function acompSectionHTML(i) {
       <div class="accomp-grid">
         <div class="accomp-item ${a.principio==='lentejas'?'sel':''}" onclick="selA(${i},'principio','lentejas')">
           <div class="accomp-img"><img src="acompañantes/porcion de lentejas.png" alt="Lentejas" loading="lazy"></div>
-          <span class="accomp-name">Lentejas</span>
+          <span class="accomp-name">Lentejas</span>${tog(a.principio==='lentejas')}
         </div>
         <div class="accomp-item ${a.principio==='pure'?'sel':''}" onclick="selA(${i},'principio','pure')">
           <div class="accomp-img"><img src="acompañantes/porcion de pure de papas.png" alt="Puré" loading="lazy"></div>
-          <span class="accomp-name">Puré de Papa</span>
+          <span class="accomp-name">Puré de Papa</span>${tog(a.principio==='pure')}
         </div>
       </div>
     </div>
@@ -1265,11 +1271,11 @@ function acompSectionHTML(i) {
       <div class="accomp-grid">
         <div class="accomp-item ${a.ensalada==='rayada'?'sel':''}" onclick="selA(${i},'ensalada','rayada')">
           <div class="accomp-img"><img src="ensaladas/ensalada rayada.png" alt="Rayada" loading="lazy"></div>
-          <span class="accomp-name">Rayada</span>
+          <span class="accomp-name">Rayada</span>${tog(a.ensalada==='rayada')}
         </div>
         <div class="accomp-item ${a.ensalada==='cocida'?'sel':''}" onclick="selA(${i},'ensalada','cocida')">
           <div class="accomp-img"><img src="ensaladas/ensalada cocida.png" alt="Cocida" loading="lazy"></div>
-          <span class="accomp-name">Cocida</span>
+          <span class="accomp-name">Cocida</span>${tog(a.ensalada==='cocida')}
         </div>
       </div>
     </div>`;
