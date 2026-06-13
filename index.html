@@ -1207,7 +1207,10 @@ function entregaHTML() {
   const needsComp = shared.pago && shared.pago !== 'efectivo';
   const hasAddr = shared.entrega === 'tienda' ||
     (shared.entrega === 'domicilio' && shared.nombre.trim() && shared.direccion.trim() && shared.telefono.trim());
-  const canConfirm = shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
+  const almDone = almuerzos.every((a,idx) =>
+    a.proteina && (!needsContorno(idx) || (a.principio && a.ensalada))
+  );
+  const canConfirm = almDone && shared.pago && hasAddr && (!needsComp || shared.comprobanteFile);
 
   return `<div style="padding:1.4rem 0 0;animation:slideUp .35s ease">
     ${shared.entrega==='domicilio'?`
@@ -1259,7 +1262,7 @@ function entregaHTML() {
       <div class="upload-ok" id="uploadOk" style="display:${shared.comprobanteFile?'block':'none'}">✅ Comprobante listo</div>
     </div>`:''}
     <button class="btn-confirm" id="btnConfirm" onclick="confirmarPedido()" ${canConfirm?'':'disabled'}>
-      ${!shared.pago?'Selecciona método de pago':needsComp&&!shared.comprobanteFile?'Sube el comprobante para continuar':'Confirmar pedido →'}
+      ${!almDone?'Completa tu almuerzo primero':!shared.pago?'Selecciona método de pago':needsComp&&!shared.comprobanteFile?'Sube el comprobante para continuar':'Confirmar pedido →'}
     </button>`:''}
   </div>`;
 }
@@ -1451,7 +1454,7 @@ function renderScreen() {
           </div>`).join('')}
       </div>
       <div id="entregaPagoSection" style="padding:0 1rem">
-        ${allDone ? entregaHTML() : ''}
+        ${entregaHTML()}
       </div>
     </div>`;
 
