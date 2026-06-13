@@ -448,7 +448,7 @@ input{font-family:inherit}
 .dish-title{font-weight:900;font-size:.95rem;text-transform:uppercase;letter-spacing:1.5px;
   color:var(--dark);text-align:center;padding-bottom:.45rem;
   border-bottom:2px solid var(--dark);width:100%;margin-bottom:.55rem;
-  min-height:2.8rem;display:flex;align-items:center;justify-content:center}
+  height:3.8rem;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .dish-desc{font-size:.77rem;color:var(--muted);text-align:center;line-height:1.55;
   margin-bottom:.75rem;max-width:210px}
 .dish-price{font-size:.92rem;font-weight:800;color:var(--or);margin-bottom:.85rem}
@@ -1808,8 +1808,7 @@ function renderSidebar() {
   const nav = document.getElementById('catSidebar');
   if (!nav) return;
   const cats = CATEGORIAS.filter(cat => PROTEINAS.some(p => p.cat === cat.id));
-  nav.innerHTML = `<button class="cat-menu-btn" onclick="toggleCatDropdown()">Menú <span id="catMenuArrow">▾</span></button>`
-    + cats.map(cat => `<button class="cat-item" data-cat="${cat.id}" onclick="scrollToCat('${cat.id}')">${cat.label}</button>`).join('');
+  nav.innerHTML = `<button class="cat-menu-btn" onclick="toggleCatDropdown()">Menú <span id="catMenuArrow">▾</span></button>`;
 
   // Crear dropdown si no existe
   if (!document.getElementById('catDropdown')) {
@@ -1866,7 +1865,13 @@ function updateActiveCat() {
 }
 
 window.addEventListener('scroll', updateActiveCat, { passive:true });
-window.addEventListener('scroll', () => { if(document.getElementById('catDropdown')?.classList.contains('open')) closeCatDropdown(); }, { passive:true });
+window.addEventListener('scroll', () => {
+  const dd = document.getElementById('catDropdown');
+  if (dd?.classList.contains('open')) {
+    const sidebar = document.getElementById('catSidebar');
+    if (sidebar) dd.style.top = sidebar.getBoundingClientRect().bottom + 'px';
+  }
+}, { passive:true });
 
 initTimeline();
 
