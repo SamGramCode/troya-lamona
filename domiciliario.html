@@ -306,14 +306,16 @@ function startRealtime() {
 }
 
 /* ── ENTREGAS DEL DIA ── */
+function fmt(n){ return '$' + (n||0).toLocaleString('es-CO'); }
+
 async function verEntregas() {
   document.getElementById('entregasOv').style.display = 'block';
   document.getElementById('entregasPanel').style.display = 'block';
   document.getElementById('entregasBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa">Cargando...</div>';
 
   const hoy = new Date();
+  if (hoy.getHours() < 6) hoy.setDate(hoy.getDate() - 1);
   hoy.setHours(6, 0, 0, 0);
-  if (new Date() < hoy) hoy.setDate(hoy.getDate() - 1);
 
   const { data } = await sb
     .from('ordenes_troya')
@@ -328,26 +330,62 @@ async function verEntregas() {
   if (badge) badge.textContent = grps.length ? `(${grps.length})` : '';
 
   if (!grps.length) {
-    document.getElementById('entregasBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa">Sin entregas aún hoy</div>';
+    document.getElementById('entregasBody').innerHTML = '<div style="text-align:center;padding:2rem;color:#aaa">Sin entregas aún hoy 🚲</div>';
     return;
   }
 
-  document.getElementById('entregasBody').innerHTML = grps.map(p => `
-    <div style="background:#f8f8f8;border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #27ae60">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:1.1rem">#${code(p.pedido_id)}</span>
-        <span style="font-size:.72rem;color:#aaa">${new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</span>
+  const total = grps.reduce((s, p) => s + (p.total || 0), 0);
+  const byPago = {};
+  grps.forEach(p => {
+    const k = p.metodo_pago || 'efectivo';
+    if (!byPago[k]) byPago[k] = { total: 0, count: 0 };
+    byPago[k].total += (p.total || 0);
+    byPago[k].count += 1;
+  });
+  const pagoLabels = { nequi:'Nequi', daviplata:'Daviplata', llave:'Llave', efectivo:'Efectivo' };
+
+  const statsHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem">
+      <div style="background:#f5f5f5;border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:900;color:var(--or)">${grps.length}</div>
+        <div style="font-size:.7rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Entregas</div>
       </div>
-      <div style="font-size:.85rem;color:#333;line-height:1.6">
-        ${p.nombre_recibe ? `👤 ${p.nombre_recibe}<br>` : ''}
-        ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
-        💳 ${p.metodo_pago || '—'}
+      <div style="background:#f5f5f5;border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:1.3rem;font-weight:900;color:#27ae60">${fmt(total)}</div>
+        <div style="font-size:.7rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Total</div>
       </div>
-    </div>
-  `).join('') + `
-    <div style="text-align:center;margin-top:1rem;font-weight:800;color:#1a1207;font-size:.95rem">
-      ✅ ${grps.length} entrega${grps.length !== 1 ? 's' : ''} hoy
     </div>`;
+
+  const pagoHTML = `
+    <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:.6rem">Por método de pago</div>
+    ${Object.entries(byPago).map(([k,v]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .8rem;background:#f8f8f8;border-radius:10px;margin-bottom:6px">
+        <span style="font-size:.88rem;font-weight:700">${pagoLabels[k]||k} <span style="color:#aaa;font-weight:400">(${v.count})</span></span>
+        <span style="font-size:.88rem;font-weight:800;color:var(--or)">${fmt(v.total)}</span>
+      </div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:.7rem .8rem;border-top:2px solid #eee;margin-top:4px;margin-bottom:1.2rem">
+      <span style="font-weight:800">Total del turno</span>
+      <span style="font-weight:900;color:#27ae60">${fmt(total)}</span>
+    </div>`;
+
+  const listHTML = `
+    <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:.6rem">Pedidos entregados</div>
+    ${grps.map(p => `
+      <div style="background:#f8f8f8;border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #27ae60">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:1.05rem">#${code(p.pedido_id)}</span>
+          <span style="font-size:.7rem;color:#aaa">${new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div style="font-size:.83rem;color:#333;line-height:1.7">
+          <strong>${p.items.join(', ') || 'Sin detalle'}</strong><br>
+          ${p.nombre_recibe ? `👤 ${p.nombre_recibe}<br>` : ''}
+          ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
+          💳 ${pagoLabels[p.metodo_pago] || p.metodo_pago || '—'}
+          ${p.total ? ` · <strong>${fmt(p.total)}</strong>` : ''}
+        </div>
+      </div>`).join('')}`;
+
+  document.getElementById('entregasBody').innerHTML = statsHTML + pagoHTML + listHTML;
 }
 
 function cerrarEntregas() {
