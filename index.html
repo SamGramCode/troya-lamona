@@ -1870,7 +1870,10 @@ window.addEventListener('scroll', updateActiveCat, { passive:true });
 let _ddOpenY = 0;
 window.addEventListener('scroll', () => {
   const dd = document.getElementById('catDropdown');
-  if (dd?.classList.contains('open') && Math.abs(window.scrollY - _ddOpenY) > 200) closeCatDropdown();
+  if (!dd?.classList.contains('open')) return;
+  const sidebar = document.getElementById('catSidebar');
+  if (sidebar) dd.style.top = sidebar.getBoundingClientRect().bottom + 'px';
+  if (Math.abs(window.scrollY - _ddOpenY) > 200) closeCatDropdown();
 }, { passive:true });
 
 initTimeline();
