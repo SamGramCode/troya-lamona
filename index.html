@@ -31,18 +31,10 @@ input{font-family:inherit}
   border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── FLAG SPRAY ──────────────────────────────────────────────── */
-.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
-.flag-spray{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-.flag-stripe{position:absolute;width:160%;left:-30%;height:30%;
-  transform-origin:center;filter:url(#spray-paint);opacity:.18}
-.flag-stripe.y{background:var(--flag-y);top:10%;transform:rotate(-5deg)}
-.flag-stripe.b{background:var(--flag-b);top:38%;transform:rotate(-5deg)}
-.flag-stripe.r{background:var(--flag-r);top:64%;transform:rotate(-5deg)}
-.flag-stars{position:absolute;width:160%;left:-30%;height:30%;top:38%;
-  transform:rotate(-5deg);transform-origin:center;
-  opacity:.18;pointer-events:none}
-.flag-stars svg{width:100%;height:100%;overflow:visible}
+/* ── FLAG CORNER TRIANGLE ─────────────────────────────────── */
+.flag-corner{position:fixed;top:0;right:0;width:180px;height:180px;
+  overflow:hidden;z-index:9999;pointer-events:none}
+.flag-corner svg{position:absolute;top:0;right:0;width:100%;height:100%}
 
 /* ── HERO ────────────────────────────────────────────────────── */
 #heroScreen{
@@ -543,22 +535,26 @@ input{font-family:inherit}
     <source src="video portada.mp4" type="video/mp4">
   </video>
   <img src="nuevo_logo_sin_fondo-removebg-preview.png" alt="Troya El Sazón de La Mona" class="hero-logo-center">
-  <div class="flag-spray">
-    <div class="flag-stripe y"></div>
-    <div class="flag-stripe b"></div>
-    <div class="flag-stripe r"></div>
-    <div class="flag-stars">
-      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
-        <polygon transform="translate(23.8,19.6)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(30.8,12.4)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(39.9,7.6)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(50,6)"      fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(60.1,7.6)"  fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(69.2,12.4)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-        <polygon transform="translate(76.2,19.6)" fill="white" points="0,-2.5 0.59,-0.81 2.38,-0.77 0.95,0.31 1.47,2.02 0,1 -1.47,2.02 -0.95,0.31 -2.38,-0.77 -0.59,-0.81"/>
-      </svg>
-    </div>
-  </div>
+</div>
+
+<!-- Triángulo bandera Venezuela esquina superior derecha -->
+<div class="flag-corner">
+  <svg viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+    <!-- Triángulo amarillo (fondo) -->
+    <polygon points="0,0 180,0 180,180" fill="#FFD100"/>
+    <!-- Triángulo azul -->
+    <polygon points="60,0 180,0 180,120" fill="#002FA7"/>
+    <!-- Triángulo rojo -->
+    <polygon points="110,0 180,0 180,70" fill="#CF0821"/>
+    <!-- Estrellas en arco sobre el azul -->
+    <g fill="white" opacity="0.9">
+      <polygon transform="translate(135,68) rotate(0)"  points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
+      <polygon transform="translate(148,55) rotate(15)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
+      <polygon transform="translate(158,40) rotate(30)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
+      <polygon transform="translate(165,23) rotate(45)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
+      <polygon transform="translate(168,6)  rotate(60)" points="0,-4 0.94,-1.29 3.8,-1.24 1.52,0.49 2.35,3.24 0,1.6 -2.35,3.24 -1.52,0.49 -3.8,-1.24 -0.94,-1.29"/>
+    </g>
+  </svg>
 </div>
 
 <!-- MASCOT — personaje animado esquina -->
