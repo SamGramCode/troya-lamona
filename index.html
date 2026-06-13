@@ -505,8 +505,10 @@ input{font-family:inherit}
     font-family:inherit;display:flex;align-items:center;gap:.3rem;letter-spacing:.02em}
   #catDropdown{position:fixed;top:50px;left:0;right:0;z-index:199;
     background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.15);
-    border-top:1px solid #eee;display:none;overflow-y:auto;max-height:60vh}
-  #catDropdown.open{display:block}
+    border-top:1px solid #eee;overflow-y:auto;max-height:60vh;
+    transform:translateY(-100%);opacity:0;pointer-events:none;
+    transition:transform .28s ease,opacity .22s ease}
+  #catDropdown.open{transform:translateY(0);opacity:1;pointer-events:auto}
   .cat-drop-item{display:block;width:100%;padding:1rem 1.4rem;font-size:.93rem;
     font-weight:700;color:#333;border:none;border-bottom:1px solid #f4f4f4;
     background:none;text-align:left;cursor:pointer;font-family:inherit}
@@ -1868,7 +1870,7 @@ window.addEventListener('scroll', updateActiveCat, { passive:true });
 let _ddOpenY = 0;
 window.addEventListener('scroll', () => {
   const dd = document.getElementById('catDropdown');
-  if (dd?.classList.contains('open') && Math.abs(window.scrollY - _ddOpenY) > 60) closeCatDropdown();
+  if (dd?.classList.contains('open') && Math.abs(window.scrollY - _ddOpenY) > 200) closeCatDropdown();
 }, { passive:true });
 
 initTimeline();
