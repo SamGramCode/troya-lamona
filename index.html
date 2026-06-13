@@ -1866,6 +1866,7 @@ function updateActiveCat() {
 }
 
 window.addEventListener('scroll', updateActiveCat, { passive:true });
+window.addEventListener('scroll', () => { if(document.getElementById('catDropdown')?.classList.contains('open')) closeCatDropdown(); }, { passive:true });
 
 initTimeline();
 
