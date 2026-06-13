@@ -1513,6 +1513,8 @@ function selEnt(v) {
 function setRicMode(v, btn) {
   document.querySelectorAll('.ric-tog').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  const tiempoEl = document.querySelector('.ric-val:not(.gratis)');
+  if (tiempoEl) tiempoEl.textContent = v === 'tienda' ? '17 min' : '25 min';
   selEnt(v);
 }
 function selPago(v) {
