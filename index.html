@@ -485,14 +485,15 @@ input{font-family:inherit}
   .showcase-layout{flex-direction:column}
   .cat-sidebar{width:100%;height:auto;position:sticky;top:0;z-index:50;
     display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;
-    padding:.55rem .8rem;border-right:none;gap:.5rem;
-    background:var(--bg);box-shadow:0 2px 10px rgba(0,0,0,.08);
-    scrollbar-width:none}
+    padding:0 .8rem;border-right:none;gap:0;
+    background:#fff;border-bottom:1px solid #e8e8e8;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);scrollbar-width:none}
   .cat-sidebar::-webkit-scrollbar{display:none}
-  .cat-item{flex-shrink:0;border-left:none;border-radius:20px;padding:.45rem 1rem;
-    background:rgba(0,0,0,.05);white-space:nowrap;font-size:.7rem}
-  .cat-item.active{background:var(--or);color:#fff;border-left:none}
-  .cat-section{scroll-margin-top:56px}
+  .cat-item{flex-shrink:0;border-left:none;border-radius:0;padding:.82rem .95rem;
+    background:none;white-space:nowrap;font-size:.82rem;font-weight:700;
+    color:#999;border-bottom:2.5px solid transparent;letter-spacing:.02em}
+  .cat-item.active{color:#111;border-bottom-color:#111;background:none}
+  .cat-section{scroll-margin-top:50px}
 }
 
 /* ── MASCOT ────────────────────────────────────────────────── */
