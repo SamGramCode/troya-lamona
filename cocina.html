@@ -966,8 +966,9 @@ function cierreDay(delta) {
 async function loadCierre() {
   const dateStr = document.getElementById('cierreDate').value;
   if (!dateStr) return;
-  const start = new Date(dateStr + 'T00:00:00');
-  const end   = new Date(dateStr + 'T23:59:59');
+  // El día va de 6:00 AM a 5:59 AM del día siguiente
+  const start = new Date(dateStr + 'T06:00:00');
+  const end   = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
   const body  = document.getElementById('cierreBody');
   body.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--mt)">Cargando…</div>`;
 
