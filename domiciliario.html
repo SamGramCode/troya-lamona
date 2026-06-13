@@ -350,43 +350,19 @@ async function cargarEntregas() {
     return;
   }
 
-  const total = grps.reduce((s, p) => s + (p.total || 0), 0);
-  const byPago = {};
-  grps.forEach(p => {
-    const k = p.metodo_pago || 'efectivo';
-    if (!byPago[k]) byPago[k] = { total: 0, count: 0 };
-    byPago[k].total += (p.total || 0);
-    byPago[k].count += 1;
-  });
   const pagoLabels = { nequi:'Nequi', daviplata:'Daviplata', llave:'Llave', efectivo:'Efectivo' };
 
-  const statsHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem">
-      <div style="background:#f5f5f5;border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:1.8rem;font-weight:900;color:var(--or)">${grps.length}</div>
-        <div style="font-size:.7rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Entregas</div>
-      </div>
-      <div style="background:#f5f5f5;border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:1.3rem;font-weight:900;color:#27ae60">${fmt(total)}</div>
-        <div style="font-size:.7rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Total</div>
-      </div>
-    </div>`;
-
-  const pagoHTML = `
-    <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:.6rem">Por método de pago</div>
-    ${Object.entries(byPago).map(([k,v]) => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem .8rem;background:#f8f8f8;border-radius:10px;margin-bottom:6px">
-        <span style="font-size:.88rem;font-weight:700">${pagoLabels[k]||k} <span style="color:#aaa;font-weight:400">(${v.count})</span></span>
-        <span style="font-size:.88rem;font-weight:800;color:var(--or)">${fmt(v.total)}</span>
-      </div>`).join('')}
-    <div style="display:flex;justify-content:space-between;padding:.7rem .8rem;border-top:2px solid #eee;margin-top:4px;margin-bottom:1.2rem">
-      <span style="font-weight:800">Total del turno</span>
-      <span style="font-weight:900;color:#27ae60">${fmt(total)}</span>
+  const countHTML = `
+    <div style="background:#f5f5f5;border-radius:12px;padding:14px;text-align:center;margin-bottom:1.2rem">
+      <div style="font-size:2rem;font-weight:900;color:var(--or)">${grps.length}</div>
+      <div style="font-size:.7rem;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Entregas del día</div>
     </div>`;
 
   const listHTML = `
     <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:.6rem">Pedidos entregados</div>
-    ${grps.map(p => `
+    ${grps.map(p => {
+      const esEfectivo = (p.metodo_pago || 'efectivo') === 'efectivo';
+      return `
       <div style="background:#f8f8f8;border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #27ae60">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
           <span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:1.05rem">#${code(p.pedido_id)}</span>
@@ -396,12 +372,12 @@ async function cargarEntregas() {
           <strong>${p.items.join(', ') || 'Sin detalle'}</strong><br>
           ${p.nombre_recibe ? `👤 ${p.nombre_recibe}<br>` : ''}
           ${p.direccion ? `📍 ${p.direccion}<br>` : ''}
-          💳 ${pagoLabels[p.metodo_pago] || p.metodo_pago || '—'}
-          ${p.total ? ` · <strong>${fmt(p.total)}</strong>` : ''}
+          💳 ${pagoLabels[p.metodo_pago] || p.metodo_pago || '—'}${esEfectivo && p.total ? ` · <strong>${fmt(p.total)}</strong>` : ''}
         </div>
-      </div>`).join('')}`;
+      </div>`;
+    }).join('')}`;
 
-  document.getElementById('entregasBody').innerHTML = statsHTML + pagoHTML + listHTML;
+  document.getElementById('entregasBody').innerHTML = countHTML + listHTML;
 }
 
 function cerrarEntregas() {
