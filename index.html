@@ -107,7 +107,14 @@ input{font-family:inherit}
   font-size:.82rem;padding:.28rem .85rem;border-radius:999px}
 
 /* ── PLATE AREA ──────────────────────────────────────────────── */
-#appScreen{display:block;min-height:100vh}
+#appScreen{position:fixed;inset:0;z-index:400;background:var(--bg);
+  overflow-y:auto;display:none}
+#appScreen.open{display:block}
+#app-close-btn{position:fixed;top:.8rem;left:1rem;z-index:401;
+  background:rgba(0,0,0,.08);border:none;border-radius:50%;
+  width:36px;height:36px;font-size:1.1rem;cursor:pointer;
+  display:none;align-items:center;justify-content:center;color:#444}
+#app-close-btn.show{display:flex}
 .plate-area{background:var(--white);padding:1.4rem 1.5rem;
   display:flex;flex-direction:column;align-items:center;gap:.7rem;
   border-bottom:1px solid var(--border)}
@@ -736,6 +743,7 @@ input{font-family:inherit}
 <!-- ══════════════════════════════════════════════════════
      APP
 ══════════════════════════════════════════════════════ -->
+<button id="app-close-btn" onclick="closeAppScreen()">✕</button>
 <div id="appScreen">
   <div id="appHeader">
       <div class="total-badge" id="totalBadge">$0</div>
@@ -934,7 +942,7 @@ function armarDesdeShowcase() {
   shared.cantidad = almuerzos.length;
   step = 1;
   renderScreen();
-  document.getElementById('appScreen').scrollIntoView({ behavior:'smooth' });
+  document.getElementById('appScreen').scrollTop = 0;
 }
 let buildIdx   = 0;    // almuerzo being built
 let buildField = 'proteina'; // 'proteina'|'principio'|'ensalada'
@@ -1166,7 +1174,7 @@ function platesRowHTML() {
 }
 
 function iniciarBuild() {
-  step = 1; renderScreen(); window.scrollTo(0,0);
+  step = 1; renderScreen(); document.getElementById('appScreen').scrollTop = 0;
 }
 
 function checkAutoAdvance() {
@@ -1343,7 +1351,7 @@ function acompSectionHTML(i) {
 
 function confirmarDomicilio() {
   if (!shared.direccion.trim() || !shared.telefono.trim()) return;
-  step = 3; renderScreen(); window.scrollTo(0,0);
+  step = 3; renderScreen(); document.getElementById('appScreen').scrollTop = 0;
 }
 
 function renderShowcase() {
@@ -1413,7 +1421,9 @@ function renderScreen() {
   const bnav    = document.getElementById('bnavBar');
   const appScr  = document.getElementById('appScreen');
   if (bnav) bnav.style.display = step === 0 ? 'none' : '';
-  if (appScr) appScr.style.display = step === 0 ? 'none' : 'block';
+  if (appScr) { appScr.classList.toggle('open', step > 0); }
+  const closeBtn = document.getElementById('app-close-btn');
+  if (closeBtn) closeBtn.classList.toggle('show', step > 0);
   const ctaBtn = document.getElementById('showcaseCta');
   if (ctaBtn) ctaBtn.style.display = step === 0 ? '' : 'none';
 
@@ -1695,19 +1705,20 @@ function goBack() {
   if (step > 0) {
     step--;
     renderScreen();
-    if (step === 0) {
-      document.getElementById('menuShowcase')?.scrollIntoView({ behavior:'smooth', block:'start' });
-    } else {
-      window.scrollTo({ top:0, behavior:'smooth' });
-    }
+    document.getElementById('appScreen').scrollTop = 0;
   }
+}
+function closeAppScreen() {
+  step = 0;
+  renderScreen();
+  document.getElementById('menuShowcase')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 /* ══════════════════════════════════════════════════════════════
    INICIAR
 ══════════════════════════════════════════════════════════════ */
 function iniciarPedido() {
-  document.getElementById('appScreen').scrollIntoView({ behavior:'smooth' });
+  document.getElementById('appScreen').scrollTop = 0;
 }
 
 /* ══════════════════════════════════════════════════════════════
