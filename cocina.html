@@ -617,8 +617,8 @@ async function doLogin() {
   if (!pass) return;
   let ok = (pass === DEFAULT_PASS);
   if (!ok) {
-    const { data } = await sb.from('config_troya').select('valor').eq('clave','password_cocina').single();
-    if (data) ok = (pass === data.valor);
+    const { data } = await sb.from('config_troya').select('value').eq('key','password_cocina').single();
+    if (data) ok = (pass === data.value);
   }
   if (ok) {
     sessionStorage.setItem('troya_auth','1');
@@ -1116,8 +1116,8 @@ function printCierre() {
 const _menuToggles = {};
 
 async function openMenu() {
-  const { data } = await sb.from('config_troya').select('valor').eq('clave','agotados').single();
-  agotados = data ? JSON.parse(data.valor || '[]') : [];
+  const { data } = await sb.from('config_troya').select('value').eq('key','agotados').single();
+  agotados = data ? JSON.parse(data.value || '[]') : [];
   agotados.forEach(id => { _menuToggles[id] = true; });
 
   const cats = [...new Set(PROTEINAS.map(p => p.cat))];
@@ -1153,7 +1153,7 @@ function toggleMenu(id, available) {
 }
 
 async function saveMenu() {
-  await sb.from('config_troya').upsert({ clave:'agotados', valor: JSON.stringify(agotados) });
+  await sb.from('config_troya').upsert({ key:'agotados', value: JSON.stringify(agotados) });
   closeMenu();
   toast('Menú actualizado', 't-ok');
 }
