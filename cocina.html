@@ -66,11 +66,8 @@ input,select,textarea{font-family:inherit}
 
 /* ── STATS BAR ──────────────────────────── */
 .statsbar{display:flex;background:var(--head);border-bottom:1px solid var(--bd)}
-.sc{flex:1;padding:.9rem .5rem;text-align:center;border-right:1px solid var(--bd);
-  cursor:pointer;transition:background .2s,box-shadow .2s;user-select:none}
+.sc{flex:1;padding:.9rem .5rem;text-align:center;border-right:1px solid var(--bd)}
 .sc:last-child{border-right:none}
-.sc:hover{background:rgba(196,118,42,.07)}
-.sc.active{background:rgba(196,118,42,.11);box-shadow:inset 0 -3px 0 var(--am)}
 .sc-v{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1}
 .sc-l{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;
   color:var(--mt);margin-top:.15rem}
@@ -384,31 +381,6 @@ option{background:var(--bg2)}
   .col-header{position:relative}
 }
 @media(max-width:480px){.lb{margin:1rem;padding:2rem 1.5rem}}
-
-/* Tarjetas compactas en móvil para que los botones siempre sean visibles */
-@media(max-width:768px){
-  .ocard{border-radius:12px}
-  .oc-top{padding:.55rem .85rem}
-  .oc-id{font-size:1rem}
-  .oc-ts{font-size:.58rem}
-  .badge{font-size:.58rem;padding:.12rem .45rem}
-  .oc-timer{padding:.22rem .85rem}
-  .ot-lbl{font-size:.55rem}
-  .ot-val{font-size:.88rem}
-  .oc-almuerzos{padding:.5rem .85rem;gap:.35rem}
-  .alm-row{padding:.35rem .6rem;border-radius:8px}
-  .alm-num{font-size:.52rem;margin-bottom:.12rem}
-  .alm-prot{font-size:.82rem}
-  .at{font-size:.55rem;padding:.08rem .38rem}
-  .oc-info{padding:.28rem .85rem .35rem;gap:.1rem}
-  .oc-info-row{font-size:.68rem}
-  .oc-total-row{padding:.38rem .85rem}
-  .oct-lbl{font-size:.58rem}
-  .oct-val{font-size:1rem}
-  .oc-actions{padding:.5rem .6rem;gap:.35rem}
-  .btn-advance{padding:.6rem;font-size:.78rem}
-  .btn-print,.btn-edit-sm,.btn-del{padding:.6rem .5rem;font-size:.72rem}
-}
 </style>
 </head>
 <body>
@@ -441,10 +413,10 @@ option{background:var(--bg2)}
 
   <!-- Stats -->
   <div class="statsbar">
-    <div class="sc s1 active" id="sc-pen" onclick="focusCol('pen')"><div class="sc-v" id="st1">0</div><div class="sc-l">Nuevos</div></div>
-    <div class="sc s2" id="sc-prep" onclick="focusCol('prep')"><div class="sc-v" id="st2">0</div><div class="sc-l">En Cocina</div></div>
-    <div class="sc s3" id="sc-done" onclick="focusCol('done')"><div class="sc-v" id="st3">0</div><div class="sc-l">Listos</div></div>
-    <div class="sc s4" onclick="openCierre()"><div class="sc-v" id="st4">$0</div><div class="sc-l">Ventas Hoy</div></div>
+    <div class="sc s1"><div class="sc-v" id="st1">0</div><div class="sc-l">Nuevos</div></div>
+    <div class="sc s2"><div class="sc-v" id="st2">0</div><div class="sc-l">En Cocina</div></div>
+    <div class="sc s3"><div class="sc-v" id="st3">0</div><div class="sc-l">Listos</div></div>
+    <div class="sc s4"><div class="sc-v" id="st4">$0</div><div class="sc-l">Ventas Hoy</div></div>
   </div>
 
   <!-- Kanban -->
@@ -677,15 +649,13 @@ function startClock() {
 /* ══ SIDEBAR NAV ═══════════════════════════════════════════ */
 function focusCol(col) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.sc').forEach(s => s.classList.remove('active'));
-  document.getElementById('nav-' + col)?.classList.add('active');
-  document.getElementById('sc-' + col)?.classList.add('active');
+  document.getElementById('nav-' + col).classList.add('active');
   if (window.innerWidth <= 768) {
     document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('mob-active'));
-    document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1))?.classList.add('mob-active');
+    document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1)).classList.add('mob-active');
   } else {
     document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1))
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      .scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
   }
 }
 
