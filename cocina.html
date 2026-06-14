@@ -99,8 +99,7 @@ input,select,textarea{font-family:inherit}
   border-right:1px solid var(--bd)}
 .kanban-col:last-child{border-right:none}
 .col-header{padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;
-  background:var(--head);border-bottom:2px solid;
-  position:sticky;top:116px;z-index:50}
+  background:var(--head);border-bottom:2px solid;flex-shrink:0}
 .col-header.h-pen{border-bottom-color:var(--pen)}
 .col-header.h-prep{border-bottom-color:var(--prep)}
 .col-header.h-done{border-bottom-color:var(--done)}
@@ -125,7 +124,6 @@ input,select,textarea{font-family:inherit}
   .board{flex-direction:column;overflow-x:hidden}
   .kanban-col{display:none;min-width:unset;flex:unset}
   .kanban-col.mob-active{display:flex}
-  .col-header{top:170px}
 }
 .col-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
   flex:1;color:var(--mt);font-size:.82rem;padding:2rem;text-align:center;gap:.5rem;opacity:.4}
