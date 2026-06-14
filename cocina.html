@@ -605,6 +605,7 @@ const SIN_CONTORNO = ['arroces','pastas','sopa_cat','Arroces','Pastas','Sopa'];
 const SOLO_PAPAS   = ['arroces','pastas','Arroces','Pastas'];
 
 const fmt = n => '$' + Number(n).toLocaleString('es-CO');
+const code = id => id ? id.slice(-6).toUpperCase() : '------';
 
 /* ══ AUTH ══════════════════════════════════════════════════ */
 const DEFAULT_PASS = 'troya2024';
@@ -801,7 +802,7 @@ function cardHTML(p) {
   return `<div class="ocard ${sClass}" id="card-${p.pedido_id.replace(/[^a-z0-9]/gi,'_')}">
     <div class="oc-top">
       <div>
-        <div class="oc-id">#${p.first_id}</div>
+        <div class="oc-id">#${code(p.pedido_id)}</div>
         <div class="oc-ts">${new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div class="oc-badges">${entregaBadge}${pagoBadge}</div>
@@ -831,7 +832,7 @@ function renderDelivered(list) {
   if (!list.length) { el.innerHTML = ''; return; }
   el.innerHTML = list.map(p => `
     <div class="del-card">
-      <div class="del-id">#${p.first_id}</div>
+      <div class="del-id">#${code(p.pedido_id)}</div>
       <div class="del-det">
         ${p.almuerzos.map(a=>a.proteina).join(', ')}<br>
         <span>${p.tipo_entrega||''}</span>
@@ -883,7 +884,7 @@ async function imprimirPedido(pedidoId) {
     '================================',
     '  TROYA — EL SAZÓN DE LA MONA  ',
     '================================',
-    `Pedido #${p.first_id}   ${hora}`,
+    `Pedido #${code(p.pedido_id)}   ${hora}`,
     `Entrega: ${p.tipo_entrega === 'domicilio' ? 'Domicilio' : 'Tienda'}`,
     p.telefono ? `Tel: ${p.telefono}` : '',
     p.direccion ? `Dir: ${p.direccion}` : '',
@@ -1068,7 +1069,7 @@ async function loadCierre() {
 
   const pedidosList = entregados.map(p => `
     <div class="del-card" style="margin-bottom:.4rem">
-      <div class="del-id">#${p.first_id}</div>
+      <div class="del-id">#${code(p.pedido_id)}</div>
       <div class="del-det">${p.almuerzos.map(a=>a.proteina).join(', ')}</div>
       <div class="del-tot">${fmt(p.total)}</div>
     </div>`).join('');
