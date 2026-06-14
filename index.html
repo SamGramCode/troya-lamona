@@ -981,11 +981,11 @@ function init() {
   }, 600);
 
   // Carga config en segundo plano (no bloquea)
-  sb.from('config_troya').select('key,value')
+  sb.from('config_troya').select('clave,valor')
     .then(({ data }) => {
       if (data) data.forEach(r => {
-        if (r.key === 'sopa_del_dia') CONFIG.sopa = r.value;
-        if (r.key === 'jugo_del_dia') CONFIG.jugo = r.value;
+        if (r.clave === 'sopa_del_dia') CONFIG.sopa = r.valor;
+        if (r.clave === 'jugo_del_dia') CONFIG.jugo = r.valor;
       });
     })
     .catch(() => {});
