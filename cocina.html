@@ -66,8 +66,11 @@ input,select,textarea{font-family:inherit}
 
 /* ── STATS BAR ──────────────────────────── */
 .statsbar{display:flex;background:var(--head);border-bottom:1px solid var(--bd)}
-.sc{flex:1;padding:.9rem .5rem;text-align:center;border-right:1px solid var(--bd)}
+.sc{flex:1;padding:.9rem .5rem;text-align:center;border-right:1px solid var(--bd);
+  cursor:pointer;transition:background .2s,box-shadow .2s;user-select:none}
 .sc:last-child{border-right:none}
+.sc:hover{background:rgba(196,118,42,.07)}
+.sc.active{background:rgba(196,118,42,.11);box-shadow:inset 0 -3px 0 var(--am)}
 .sc-v{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1}
 .sc-l{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;
   color:var(--mt);margin-top:.15rem}
@@ -93,8 +96,9 @@ input,select,textarea{font-family:inherit}
 .nav-cnt.n-done{background:rgba(61,191,112,.15);color:var(--done)}
 
 .board{flex:1;display:flex;gap:0;overflow-x:auto;align-items:stretch;padding:0}
-.kanban-col{min-width:var(--col-w);flex:1;display:flex;flex-direction:column;
+.kanban-col{min-width:var(--col-w);flex:1;display:none;flex-direction:column;
   border-right:1px solid var(--bd);height:calc(100vh - 56px - 60px);overflow:hidden}
+.kanban-col.mob-active{display:flex}
 .kanban-col:last-child{border-right:none}
 .col-header{padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;
   background:var(--head);border-bottom:2px solid;flex-shrink:0}
@@ -119,8 +123,8 @@ input,select,textarea{font-family:inherit}
   .nav-lbl{font-size:.75rem;letter-spacing:1px}
   .board-wrap{flex-direction:column}
   .board{flex-direction:column;overflow-x:hidden}
-  .kanban-col{display:none;min-width:unset;height:auto;flex:unset}
-  .kanban-col.mob-active{display:flex;height:calc(100vh - 56px - 60px - 54px);overflow:hidden}
+  .kanban-col{min-width:unset;height:auto;flex:unset}
+  .kanban-col.mob-active{height:calc(100vh - 56px - 60px - 54px);overflow:hidden}
 }
 .col-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
   flex:1;color:var(--mt);font-size:.82rem;padding:2rem;text-align:center;gap:.5rem;opacity:.4}
@@ -413,10 +417,10 @@ option{background:var(--bg2)}
 
   <!-- Stats -->
   <div class="statsbar">
-    <div class="sc s1"><div class="sc-v" id="st1">0</div><div class="sc-l">Nuevos</div></div>
-    <div class="sc s2"><div class="sc-v" id="st2">0</div><div class="sc-l">En Cocina</div></div>
-    <div class="sc s3"><div class="sc-v" id="st3">0</div><div class="sc-l">Listos</div></div>
-    <div class="sc s4"><div class="sc-v" id="st4">$0</div><div class="sc-l">Ventas Hoy</div></div>
+    <div class="sc s1 active" id="sc-pen" onclick="focusCol('pen')"><div class="sc-v" id="st1">0</div><div class="sc-l">Nuevos</div></div>
+    <div class="sc s2" id="sc-prep" onclick="focusCol('prep')"><div class="sc-v" id="st2">0</div><div class="sc-l">En Cocina</div></div>
+    <div class="sc s3" id="sc-done" onclick="focusCol('done')"><div class="sc-v" id="st3">0</div><div class="sc-l">Listos</div></div>
+    <div class="sc s4" onclick="openCierre()"><div class="sc-v" id="st4">$0</div><div class="sc-l">Ventas Hoy</div></div>
   </div>
 
   <!-- Kanban -->
@@ -649,14 +653,11 @@ function startClock() {
 /* ══ SIDEBAR NAV ═══════════════════════════════════════════ */
 function focusCol(col) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('nav-' + col).classList.add('active');
-  if (window.innerWidth <= 768) {
-    document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('mob-active'));
-    document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1)).classList.add('mob-active');
-  } else {
-    document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1))
-      .scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-  }
+  document.querySelectorAll('.sc').forEach(s => s.classList.remove('active'));
+  document.getElementById('nav-' + col)?.classList.add('active');
+  document.getElementById('sc-' + col)?.classList.add('active');
+  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('mob-active'));
+  document.getElementById('col' + col.charAt(0).toUpperCase() + col.slice(1))?.classList.add('mob-active');
 }
 
 /* ══ DATA ══════════════════════════════════════════════════ */
