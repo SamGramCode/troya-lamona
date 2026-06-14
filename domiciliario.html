@@ -182,7 +182,7 @@ function groupRows(rows) {
     const key = r.pedido_id || `_${r.id}`;
     if (!map[key]) {
       map[key] = {
-        pedido_id: r.pedido_id, ids: [], items: [],
+        pedido_id: r.pedido_id, first_id: r.id, ids: [], items: [],
         estado: r.estado, estado_entrega: r.estado_entrega,
         domiciliario: r.domiciliario, nombre_recibe: r.nombre_recibe,
         direccion: r.direccion, telefono: r.telefono,
@@ -221,7 +221,7 @@ async function cargar() {
 }
 
 /* ── RENDER ── */
-function code(id) { return id ? id.slice(-6).toUpperCase() : '------'; }
+function code(n) { return 'TM' + String(n).padStart(4, '0'); }
 function timeAgo(ts) {
   if (!ts) return '';
   const m = Math.floor((Date.now() - new Date(ts)) / 60000);
@@ -241,7 +241,7 @@ function render() {
     ? disponibles.map(p => `
         <div class="card">
           <div class="card-top">
-            <span class="card-code">#${code(p.pedido_id)}</span>
+            <span class="card-code">#${code(p.first_id)}</span>
             <span class="card-time">${timeAgo(p.created_at)}</span>
           </div>
           <div class="card-body">
@@ -260,7 +260,7 @@ function render() {
     ? camino.map(p => `
         <div class="card camino">
           <div class="card-top">
-            <span class="card-code azul">#${code(p.pedido_id)}</span>
+            <span class="card-code azul">#${code(p.first_id)}</span>
             <span class="card-time">${timeAgo(p.created_at)}</span>
           </div>
           <div class="card-body">
@@ -365,7 +365,7 @@ async function cargarEntregas() {
       return `
       <div style="background:#f8f8f8;border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #27ae60">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-          <span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:1.05rem">#${code(p.pedido_id)}</span>
+          <span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:1.05rem">#${code(p.first_id)}</span>
           <span style="font-size:.7rem;color:#aaa">${new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</span>
         </div>
         <div style="font-size:.83rem;color:#333;line-height:1.7">
